@@ -1,0 +1,3665 @@
+<!-- BUILD: v1.15.1 -->
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#06c755" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>已讀不回</title>
+  <style>
+    :root{
+      --line:#06c755;
+      --line-dark:#05a948;
+      --chat-bg:#8cabd0;
+      --mine:#9de65c;
+      --other:#fff;
+      --ink:#1b1d22;
+      --muted:#68717b;
+      --danger:#b70018;
+      --panel:#f6f7f8;
+      --shadow:0 12px 30px rgba(0,0,0,.18);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC",sans-serif;background:#111;color:var(--ink)}
+    body{
+      min-height:100svh;
+      display:grid;
+      place-items:center;
+      overflow:hidden;
+      background:
+        radial-gradient(circle at 20% 10%,rgba(6,199,85,.13),transparent 28%),
+        radial-gradient(circle at 80% 90%,rgba(125,0,18,.18),transparent 35%),
+        #111;
+    }
+
+    button,input{font:inherit}
+    button{cursor:pointer}
+
+    .phone{
+      width:min(100vw,460px);
+      height:min(100svh,900px);
+      background:#fff;
+      box-shadow:var(--shadow);
+      display:flex;
+      flex-direction:column;
+      position:relative;
+      overflow:hidden;
+    }
+
+    @media (min-width:560px){
+      .phone{height:min(92svh,900px);border-radius:24px;border:8px solid #252525}
+    }
+
+
+    .chat-tabs{
+      height:42px;
+      flex:0 0 auto;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      background:#f6f7f8;
+      border-bottom:1px solid #d9dde1;
+      position:relative;
+      z-index:4;
+    }
+
+    .chat-tab{
+      border:0;
+      background:transparent;
+      color:#747c85;
+      font-size:13px;
+      font-weight:750;
+      position:relative;
+      padding:0 12px;
+    }
+
+    .chat-tab.active{
+      color:#14171b;
+      background:#fff;
+    }
+
+    .chat-tab.active::after{
+      content:"";
+      position:absolute;
+      left:25%;
+      right:25%;
+      bottom:0;
+      height:3px;
+      border-radius:999px 999px 0 0;
+      background:var(--line);
+    }
+
+    .unread-badge{
+      display:none;
+      min-width:17px;
+      height:17px;
+      padding:0 5px;
+      margin-left:5px;
+      border-radius:999px;
+      background:#e00025;
+      color:#fff;
+      font-size:10px;
+      line-height:17px;
+      vertical-align:1px;
+      box-shadow:0 1px 4px rgba(130,0,15,.25);
+    }
+
+    .unread-badge.show{
+      display:inline-block;
+    }
+
+    .thread{
+      display:none;
+    }
+
+    .thread.active{
+      display:block;
+    }
+
+    .header .avatar.friend-avatar{
+      background:
+        radial-gradient(circle at 50% 36%,#f2d6c5 0 23%,transparent 24%),
+        radial-gradient(circle at 50% 68%,#6f4b3c 0 32%,transparent 33%),
+        linear-gradient(145deg,#ffd6e4,#a05a75);
+    }
+
+    .chat-switch-flash{
+      animation:chatSwitch .22s ease-out;
+    }
+
+    @keyframes chatSwitch{
+      from{opacity:.35;transform:translateX(8px)}
+      to{opacity:1;transform:none}
+    }
+
+    .statusbar{
+      height:28px;
+      padding:0 14px;
+      background:#050505;
+      color:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      font-size:12px;
+      letter-spacing:.04em;
+      flex:0 0 auto;
+    }
+
+    .header{
+      height:64px;
+      background:var(--line);
+      color:#fff;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:8px 12px;
+      box-shadow:0 2px 8px rgba(0,0,0,.12);
+      position:relative;
+      z-index:5;
+      flex:0 0 auto;
+    }
+
+    .back{
+      font-size:28px;
+      line-height:1;
+      opacity:.95;
+      transform:translateY(-1px);
+    }
+
+    .avatar{
+      width:42px;height:42px;border-radius:50%;
+      background:
+        radial-gradient(circle at 50% 35%,#f0d2c1 0 23%,transparent 24%),
+        radial-gradient(circle at 50% 64%,#34383f 0 31%,transparent 32%),
+        linear-gradient(145deg,#cad0d8,#6e7784);
+      border:2px solid rgba(255,255,255,.8);
+      box-shadow:0 2px 6px rgba(0,0,0,.18);
+      flex:0 0 auto;
+    }
+
+    .profile{min-width:0;flex:1}
+    .profile-name{font-weight:750;font-size:16px;display:flex;align-items:center;gap:6px}
+    .profile-sub{font-size:11px;opacity:.88;margin-top:2px}
+    .online-dot{width:8px;height:8px;background:#e7ff80;border-radius:50%;box-shadow:0 0 8px #e7ff80}
+
+    .header-actions{display:flex;gap:12px;font-size:20px;align-items:center}
+    .icon-btn{
+      background:transparent;border:0;color:#fff;padding:4px;
+      width:30px;height:30px;border-radius:50%;
+    }
+    .icon-btn:hover{background:rgba(255,255,255,.15)}
+
+    .chat{
+      flex:1;
+      min-height:0;
+      overflow-y:auto;
+      padding:14px 12px 28px;
+      scroll-behavior:smooth;
+      background:
+        linear-gradient(rgba(140,171,208,.92),rgba(140,171,208,.92)),
+        repeating-linear-gradient(45deg,rgba(255,255,255,.08) 0 1px,transparent 1px 13px);
+      position:relative;
+    }
+
+    .chat.glitch{
+      animation:glitchBg .16s linear 3;
+    }
+
+
+    .row.spam{
+      margin:3px 0;
+      animation-duration:.1s;
+    }
+
+    .row.spam .bubble{
+      border-color:rgba(183,0,24,.58);
+      box-shadow:0 0 16px rgba(183,0,24,.22);
+      font-weight:700;
+    }
+
+    .row.spam:nth-of-type(3n) .bubble{
+      font-size:17px;
+    }
+
+    .chat.panic-mode{
+      background:
+        linear-gradient(rgba(120,135,155,.94),rgba(85,96,112,.94)),
+        repeating-linear-gradient(90deg,rgba(120,0,18,.14) 0 1px,transparent 1px 8px);
+    }
+
+    @keyframes glitchBg{
+      0%{filter:none;transform:none}
+      25%{filter:hue-rotate(16deg) contrast(1.15);transform:translateX(2px)}
+      50%{filter:saturate(.6) contrast(1.3);transform:translateX(-2px)}
+      100%{filter:none;transform:none}
+    }
+
+    .date-pill,.system-note{
+      width:max-content;
+      max-width:86%;
+      margin:10px auto;
+      padding:5px 10px;
+      border-radius:14px;
+      font-size:10px;
+      color:#fff;
+      background:rgba(53,70,91,.45);
+      text-align:center;
+      backdrop-filter:blur(4px);
+    }
+
+    .system-note.danger{
+      background:rgba(104,0,12,.65);
+      animation:pulse 1.3s ease-in-out infinite;
+    }
+
+    @keyframes pulse{
+      50%{box-shadow:0 0 0 5px rgba(183,0,24,.13)}
+    }
+
+    .row{
+      display:flex;
+      align-items:flex-end;
+      gap:7px;
+      margin:9px 0;
+      animation:messageIn .24s ease-out both;
+    }
+    .row.mine{justify-content:flex-end}
+    .row.other{justify-content:flex-start}
+
+    @keyframes messageIn{
+      from{opacity:0;transform:translateY(8px) scale(.98)}
+      to{opacity:1;transform:none}
+    }
+
+    .mini-avatar{
+      width:30px;height:30px;border-radius:50%;
+      background:
+        radial-gradient(circle at 50% 35%,#f0d2c1 0 23%,transparent 24%),
+        radial-gradient(circle at 50% 64%,#34383f 0 31%,transparent 32%),
+        linear-gradient(145deg,#cad0d8,#6e7784);
+      flex:0 0 auto;
+    }
+
+    .bubble-wrap{max-width:75%;display:flex;align-items:flex-end;gap:5px}
+    .row.mine .bubble-wrap{flex-direction:row-reverse}
+
+    .bubble{
+      padding:9px 12px;
+      border-radius:17px;
+      font-size:15px;
+      line-height:1.48;
+      white-space:pre-wrap;
+      word-break:break-word;
+      position:relative;
+      box-shadow:0 1px 2px rgba(0,0,0,.09);
+    }
+
+    .other .bubble{background:var(--other);border-top-left-radius:5px}
+    .mine .bubble{background:var(--mine);border-top-right-radius:5px}
+
+    .bubble.creepy{
+      color:#3b0008;
+      border:1px solid rgba(183,0,24,.26);
+      box-shadow:0 0 18px rgba(183,0,24,.13);
+    }
+
+    .meta{
+      font-size:9px;
+      color:#ecf1f6;
+      text-shadow:0 1px 2px rgba(0,0,0,.45);
+      white-space:nowrap;
+      line-height:1.15;
+      padding-bottom:2px;
+      text-align:right;
+    }
+
+    .typing{
+      width:58px;
+      height:34px;
+      padding:0 12px;
+      display:flex;
+      align-items:center;
+      gap:4px;
+    }
+    .typing span{
+      width:6px;height:6px;background:#8c9299;border-radius:50%;
+      animation:typing 1s infinite ease-in-out;
+    }
+    .typing span:nth-child(2){animation-delay:.15s}
+    .typing span:nth-child(3){animation-delay:.3s}
+    @keyframes typing{
+      0%,70%,100%{transform:translateY(0);opacity:.45}
+      35%{transform:translateY(-4px);opacity:1}
+    }
+
+    .attachment{
+      background:#fff;
+      border-radius:14px;
+      overflow:hidden;
+      width:min(245px,70vw);
+      box-shadow:0 2px 7px rgba(0,0,0,.14);
+    }
+    .attachment-img{
+      height:140px;
+      display:grid;
+      place-items:center;
+      background:
+        linear-gradient(rgba(0,0,0,.05),rgba(0,0,0,.28)),
+        radial-gradient(circle at 68% 40%,#f7ddca 0 12px,transparent 13px),
+        linear-gradient(90deg,#222 0 14%,#786b60 14% 18%,#c6b69d 18% 82%,#443d37 82%);
+      color:#fff;
+      font-size:42px;
+      position:relative;
+    }
+    .attachment-img::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        linear-gradient(90deg,transparent 49%,rgba(255,255,255,.35) 50%,transparent 51%),
+        linear-gradient(transparent 49%,rgba(255,255,255,.35) 50%,transparent 51%);
+      background-size:33.333% 33.333%;
+      opacity:.15;
+    }
+    .attachment-caption{padding:9px 10px;font-size:12px;color:#4a4f55}
+
+    .choice-area{
+      flex:0 0 auto;
+      background:rgba(246,247,248,.98);
+      border-top:1px solid #d9dde1;
+      padding:10px 10px calc(10px + env(safe-area-inset-bottom));
+      display:grid;
+      gap:8px;
+      max-height:36%;
+      overflow:auto;
+    }
+
+    .choice-title{
+      font-size:11px;
+      color:#7d858e;
+      text-align:center;
+      letter-spacing:.08em;
+    }
+
+
+    .custom-reply{
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+
+    .custom-reply-input{
+      min-width:0;
+      flex:1;
+      border:1px solid #cfd5da;
+      background:#fff;
+      border-radius:12px;
+      padding:11px 12px;
+      color:#20242a;
+      outline:none;
+    }
+
+    .custom-reply-input:focus{
+      border-color:var(--line);
+      box-shadow:0 0 0 3px rgba(6,199,85,.12);
+    }
+
+    .custom-reply-send{
+      flex:0 0 auto;
+      border:0;
+      border-radius:12px;
+      padding:11px 14px;
+      background:var(--line);
+      color:#fff;
+      font-weight:750;
+    }
+
+    .custom-reply-hint{
+      margin-top:7px;
+      color:#7d858e;
+      font-size:10px;
+      text-align:center;
+    }
+
+    .choice-btn{
+      border:1px solid #cfd5da;
+      background:#fff;
+      color:#20242a;
+      border-radius:13px;
+      padding:11px 12px;
+      text-align:left;
+      line-height:1.35;
+      transition:.15s ease;
+      box-shadow:0 1px 3px rgba(0,0,0,.06);
+    }
+    .choice-btn:hover{border-color:var(--line);transform:translateY(-1px)}
+    .choice-btn:active{transform:translateY(1px)}
+    .choice-btn.danger{border-color:#d8a8ae;color:#71000e}
+
+    .composer{
+      height:54px;
+      background:#f7f7f7;
+      border-top:1px solid #ddd;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:7px 10px;
+      flex:0 0 auto;
+    }
+    .composer .fake-input{
+      flex:1;background:#fff;border:1px solid #d7d7d7;border-radius:18px;
+      color:#aaa;padding:8px 12px;font-size:13px;
+    }
+    .composer-icon{font-size:20px;color:#6d737b}
+
+    .overlay{
+      position:absolute;inset:0;
+      background:rgba(7,8,10,.82);
+      display:grid;
+      place-items:center;
+      z-index:20;
+      padding:22px;
+      backdrop-filter:blur(8px);
+    }
+    .overlay.hidden{display:none}
+
+
+    #startOverlay .card{
+      padding:22px;
+    }
+
+    #startOverlay .name-input{
+      margin:0;
+    }
+
+    .card{
+      width:min(100%,360px);
+      background:#fff;
+      border-radius:18px;
+      padding:24px;
+      box-shadow:0 22px 60px rgba(0,0,0,.4);
+      text-align:center;
+    }
+
+
+    .card h1{font-size:26px;margin:0 0 8px}
+    .card p{font-size:14px;line-height:1.65;color:#5d6670;margin:0 0 18px}
+
+    .voice-settings{
+      margin-top:12px;
+      border:1px solid #dce1e5;
+      border-radius:12px;
+      background:#f7f8f9;
+      text-align:left;
+      overflow:hidden;
+    }
+
+    .voice-settings summary{
+      padding:10px 12px;
+      cursor:pointer;
+      font-size:12px;
+      font-weight:750;
+      color:#606871;
+      list-style:none;
+    }
+
+    .voice-settings summary::-webkit-details-marker{display:none}
+
+    .voice-settings[open] summary{
+      border-bottom:1px solid #e2e6e9;
+    }
+
+    .voice-setting-row{
+      display:grid;
+      grid-template-columns:34px 1fr 32px;
+      gap:7px;
+      align-items:center;
+      padding:8px 10px;
+    }
+
+    .voice-setting-row + .voice-setting-row{
+      padding-top:2px;
+      padding-bottom:10px;
+    }
+
+    .voice-setting-row label{
+      font-size:11px;
+      color:#68717a;
+      font-weight:700;
+    }
+
+    .voice-setting-row select{
+      min-width:0;
+      width:100%;
+      border:1px solid #d4d9de;
+      border-radius:8px;
+      background:#fff;
+      padding:7px 8px;
+      font-size:11px;
+      color:#30353a;
+    }
+
+    .voice-preview{
+      width:30px;
+      height:30px;
+      border:0;
+      border-radius:50%;
+      background:#343a40;
+      color:#fff;
+      display:grid;
+      place-items:center;
+      padding-left:2px;
+    }
+
+
+
+    .name-voice-row select{
+      min-width:0;
+      border:1.5px solid #d7dde2;
+      border-radius:12px;
+      background:#fff;
+      padding:8px;
+      font-size:12px;
+      color:#40464d;
+    }
+
+    .name-input{
+      width:100%;
+      border:1.5px solid #d7dde2;
+      border-radius:12px;
+      padding:12px 13px;
+      outline:none;
+      text-align:center;
+      font-size:16px;
+    }
+    .name-input:focus{border-color:var(--line);box-shadow:0 0 0 4px rgba(6,199,85,.12)}
+    .primary{
+      width:100%;
+      border:0;
+      border-radius:12px;
+      background:var(--line);
+      color:#fff;
+      font-weight:750;
+      padding:12px 15px;
+      margin-top:12px;
+    }
+    .primary:hover{background:var(--line-dark)}
+    .tiny{font-size:11px!important;color:#8b929a!important;margin-top:12px!important}
+
+    #endingOverlay{
+      padding:14px;
+    }
+
+    .ending-card{
+      width:min(100%,360px);
+      max-height:calc(100% - 8px);
+      background:linear-gradient(180deg,#fff,#f3f4f5);
+      position:relative;
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      padding:22px 20px 18px;
+    }
+
+    .ending-card::before{
+      content:"";
+      position:absolute;
+      inset:-30% auto auto -20%;
+      width:180px;
+      height:180px;
+      border-radius:50%;
+      background:rgba(183,0,24,.08);
+      pointer-events:none;
+    }
+
+    .ending-card h2{
+      position:relative;
+      z-index:1;
+      flex:0 0 auto;
+      margin:0 0 12px;
+      font-size:24px;
+      text-align:center;
+    }
+
+    #endingText{
+      position:relative;
+      z-index:1;
+      flex:1 1 auto;
+      min-height:0;
+      overflow-y:auto;
+      overscroll-behavior:contain;
+      scrollbar-gutter:stable;
+      scrollbar-width:thin;
+      scrollbar-color:#aeb4ba transparent;
+      white-space:pre-wrap;
+      text-align:left;
+      font-size:14px;
+      line-height:1.72;
+      color:#505862;
+      margin:0 0 14px;
+      padding:2px 8px 12px 2px;
+      -webkit-mask-image:linear-gradient(
+        to bottom,
+        transparent 0,
+        #000 10px,
+        #000 calc(100% - 18px),
+        transparent 100%
+      );
+      mask-image:linear-gradient(
+        to bottom,
+        transparent 0,
+        #000 10px,
+        #000 calc(100% - 18px),
+        transparent 100%
+      );
+    }
+
+    #endingText::-webkit-scrollbar{
+      width:5px;
+    }
+
+    #endingText::-webkit-scrollbar-track{
+      background:transparent;
+    }
+
+    #endingText::-webkit-scrollbar-thumb{
+      background:#aeb4ba;
+      border-radius:999px;
+    }
+
+    #endingCard .primary{
+      position:relative;
+      z-index:1;
+      flex:0 0 auto;
+      margin-top:0;
+      box-shadow:0 -10px 22px rgba(243,244,245,.9);
+    }
+
+    .ending-stats{
+      margin:14px 0;
+      padding:10px;
+      background:#eceff1;
+      border-radius:11px;
+      font-size:12px;
+      color:#535b65;
+    }
+
+    .secondary{
+      width:100%;
+      border:1px solid #cfd5da;
+      border-radius:12px;
+      background:#fff;
+      padding:11px 14px;
+      font-weight:700;
+    }
+
+    .screen-flash{
+      position:absolute;inset:0;background:#8c0013;z-index:18;
+      pointer-events:none;opacity:0;
+    }
+    .screen-flash.active{animation:flash .55s ease-out}
+    @keyframes flash{
+      0%{opacity:0}
+      18%{opacity:.7}
+      100%{opacity:0}
+    }
+
+
+
+    .row.voice-row{
+      margin:9px 0;
+    }
+
+    .voice-message{
+      min-width:184px;
+      padding:9px 12px!important;
+      white-space:normal;
+      cursor:pointer;
+      user-select:none;
+      border-radius:17px!important;
+    }
+
+    .other .voice-message{
+      border-top-left-radius:5px!important;
+    }
+
+    .voice-sender,
+    .voice-hint{
+      display:none;
+    }
+
+    .voice-main{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      min-height:22px;
+    }
+
+    .voice-play{
+      width:18px;
+      height:22px;
+      flex:0 0 18px;
+      border:0;
+      background:transparent!important;
+      box-shadow:none!important;
+      padding:0;
+      margin:0;
+      font-size:0;
+      line-height:0;
+      position:relative;
+      display:block;
+    }
+
+    .voice-play::before{
+      content:"";
+      position:absolute;
+      left:4px;
+      top:50%;
+      transform:translateY(-50%);
+      width:0;
+      height:0;
+      border-top:6px solid transparent;
+      border-bottom:6px solid transparent;
+      border-left:9px solid #343a40;
+    }
+
+    .voice-message.creepy .voice-play::before{
+      border-left-color:#820010;
+    }
+
+    .voice-message.playing .voice-play::before{
+      left:3px;
+      width:10px;
+      height:12px;
+      border:0;
+      transform:translateY(-50%);
+      background:
+        linear-gradient(
+          90deg,
+          #343a40 0 3px,
+          transparent 3px 7px,
+          #343a40 7px 10px
+        );
+    }
+
+    .voice-message.creepy.playing .voice-play::before{
+      background:
+        linear-gradient(
+          90deg,
+          #820010 0 3px,
+          transparent 3px 7px,
+          #820010 7px 10px
+        );
+    }
+
+    .voice-wave{
+      height:22px;
+      flex:1;
+      display:flex;
+      align-items:center;
+      gap:2px;
+      overflow:hidden;
+    }
+
+    .voice-wave i{
+      display:block;
+      width:2px;
+      border-radius:999px;
+      background:#68717a;
+      opacity:.65;
+      height:var(--h);
+      transform-origin:center;
+    }
+
+    .voice-message.creepy .voice-wave i{
+      background:#9c0014;
+    }
+
+    .voice-time{
+      font-size:10px;
+      color:#737b84;
+      min-width:30px;
+      text-align:right;
+      line-height:1;
+    }
+
+    .voice-message.playing .voice-wave i{
+      animation:wavePlay .48s ease-in-out infinite alternate;
+      animation-delay:calc(var(--i) * -40ms);
+      opacity:1;
+    }
+
+    @keyframes wavePlay{
+      from{transform:scaleY(.45)}
+      to{transform:scaleY(1.18)}
+    }
+
+    .friend-avatar{
+      background:
+        radial-gradient(circle at 50% 36%,#f2d6c5 0 23%,transparent 24%),
+        radial-gradient(circle at 50% 68%,#6f4b3c 0 32%,transparent 33%),
+        linear-gradient(145deg,#ffd6e4,#a05a75)!important;
+    }
+
+    .contact-card{
+      width:min(270px,74vw);
+      background:rgba(255,255,255,.94);
+      border-radius:13px;
+      padding:10px 12px;
+      border-left:4px solid #d31b43;
+      box-shadow:0 2px 8px rgba(0,0,0,.13);
+      font-size:12px;
+      line-height:1.5;
+    }
+
+    .contact-card strong{
+      display:block;
+      font-size:13px;
+      margin-bottom:2px;
+    }
+
+
+    .call-overlay{
+      position:absolute;
+      inset:0;
+      z-index:40;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:space-between;
+      padding:72px 28px 44px;
+      color:#fff;
+      text-align:center;
+      background:
+        radial-gradient(circle at 50% 30%,rgba(255,255,255,.12),transparent 28%),
+        linear-gradient(180deg,#29423a 0%,#14221e 55%,#090d0c 100%);
+      backdrop-filter:blur(14px);
+    }
+
+    .call-overlay::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      background:
+        radial-gradient(circle at 50% 37%,transparent 0 72px,rgba(255,255,255,.035) 73px 74px,transparent 75px 104px,rgba(255,255,255,.025) 105px 106px,transparent 107px);
+      animation:callRipple 2.2s ease-out infinite;
+    }
+
+    @keyframes callRipple{
+      0%{opacity:.2;transform:scale(.88)}
+      65%{opacity:.8}
+      100%{opacity:0;transform:scale(1.18)}
+    }
+
+    .call-top,
+    .call-actions{
+      position:relative;
+      z-index:1;
+    }
+
+    .call-type{
+      font-size:13px;
+      opacity:.78;
+      letter-spacing:.08em;
+    }
+
+    .call-attempt{
+      margin-top:6px;
+      font-size:11px;
+      opacity:.55;
+    }
+
+    .call-profile{
+      position:relative;
+      z-index:1;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:13px;
+      margin-top:-34px;
+    }
+
+    .call-avatar{
+      width:104px;
+      height:104px;
+      border-radius:50%;
+      background:
+        radial-gradient(circle at 50% 35%,#f0d2c1 0 23%,transparent 24%),
+        radial-gradient(circle at 50% 64%,#34383f 0 31%,transparent 32%),
+        linear-gradient(145deg,#cad0d8,#6e7784);
+      border:3px solid rgba(255,255,255,.78);
+      box-shadow:0 0 0 9px rgba(255,255,255,.06),0 18px 42px rgba(0,0,0,.4);
+    }
+
+    .call-overlay.ringing .call-avatar{
+      animation:callerPulse 1.1s ease-in-out infinite;
+    }
+
+    @keyframes callerPulse{
+      50%{transform:scale(1.045);box-shadow:0 0 0 14px rgba(255,255,255,.035),0 18px 42px rgba(0,0,0,.4)}
+    }
+
+    .call-name{
+      font-size:29px;
+      font-weight:780;
+      letter-spacing:.04em;
+    }
+
+    .call-status{
+      min-height:20px;
+      font-size:13px;
+      opacity:.78;
+    }
+
+    .call-timer{
+      min-height:18px;
+      margin-top:-5px;
+      font-size:12px;
+      opacity:.62;
+      font-variant-numeric:tabular-nums;
+    }
+
+    .call-actions{
+      width:100%;
+      display:flex;
+      justify-content:space-around;
+      align-items:flex-end;
+    }
+
+    .call-action{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:8px;
+      font-size:12px;
+      color:#fff;
+    }
+
+    .call-action button{
+      width:66px;
+      height:66px;
+      border:0;
+      border-radius:50%;
+      color:#fff;
+      font-size:27px;
+      display:grid;
+      place-items:center;
+      box-shadow:0 8px 22px rgba(0,0,0,.28);
+      transition:transform .15s ease;
+    }
+
+    .call-action button:active{
+      transform:scale(.92);
+    }
+
+    .call-decline{
+      background:#e23b45;
+      transform:rotate(135deg);
+    }
+
+    .call-accept{
+      background:#22b85a;
+    }
+
+    .call-overlay.connected .call-accept-action{
+      display:none;
+    }
+
+    .call-overlay.connected .call-actions{
+      justify-content:center;
+    }
+
+    .call-overlay.connected .call-decline{
+      transform:rotate(135deg);
+    }
+
+    .notification{
+      position:absolute;
+      left:12px;right:12px;top:40px;
+      background:rgba(255,255,255,.94);
+      z-index:12;
+      border-radius:14px;
+      padding:10px 12px;
+      display:flex;
+      gap:10px;
+      box-shadow:0 10px 28px rgba(0,0,0,.25);
+      transform:translateY(-150%);
+      opacity:0;
+      transition:.35s ease;
+      backdrop-filter:blur(10px);
+    }
+    .notification.show{transform:translateY(0);opacity:1}
+    .notif-icon{
+      width:34px;height:34px;border-radius:8px;background:var(--line);
+      color:#fff;display:grid;place-items:center;font-weight:900;
+    }
+    .notif-body{min-width:0}
+    .notif-title{font-size:12px;font-weight:800}
+    .notif-text{font-size:12px;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+
+    .hidden{display:none!important}
+  </style>
+</head>
+<body>
+  <main class="phone" aria-label="恐怖情人聊天遊戲">
+    <div class="statusbar">
+      <span id="clock">21:47</span>
+      <span>●●●　Wi‑Fi　▰</span>
+    </div>
+
+    <header class="header">
+      <div class="back" aria-hidden="true">‹</div>
+      <div id="headerAvatar" class="avatar" aria-hidden="true"></div>
+      <div class="profile">
+        <div id="profileName" class="profile-name">彥廷 <span class="online-dot"></span></div>
+        <div class="profile-sub" id="profileSub">上線中</div>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" id="soundBtn" aria-label="切換音效">🔊</button>
+        <button class="icon-btn" id="restartBtn" aria-label="重新開始">↻</button>
+      </div>
+    </header>
+
+    <nav id="chatTabs" class="chat-tabs" aria-label="聊天室切換">
+      <button class="chat-tab active" data-contact="yenting">
+        彥廷<span id="unreadYenting" class="unread-badge">0</span>
+      </button>
+      <button class="chat-tab" data-contact="xiaoqing">
+        小晴<span id="unreadXiaoqing" class="unread-badge">0</span>
+      </button>
+    </nav>
+
+    <section id="chatYenting" class="chat thread active" aria-live="polite"></section>
+    <section id="chatXiaoqing" class="chat thread" aria-live="polite"></section>
+
+    <section id="choiceArea" class="choice-area hidden">
+      <div class="choice-title">回覆</div>
+      <div id="choices"></div>
+    </section>
+
+    <div class="composer">
+      <span class="composer-icon">＋</span>
+      <div class="fake-input">輸入訊息</div>
+      <span class="composer-icon">☺</span>
+      <span class="composer-icon">🎙</span>
+    </div>
+
+    <div id="startOverlay" class="overlay">
+      <div class="card">
+        <h1>已讀不回</h1>
+        <p>他總是記得你說過的每件事。<br>直到有一天，他開始知道你沒說過的事。</p>
+        <input id="nameInput" class="name-input" maxlength="20" placeholder="輸入你的名字" autocomplete="off" />
+        <button id="startBtn" class="primary">進入聊天室</button>
+      </div>
+    </div>
+
+    <div id="endingOverlay" class="overlay hidden">
+      <div id="endingCard" class="card ending-card">
+        <h2 id="endingTitle"></h2>
+        <p id="endingText"></p>
+        <button id="againBtn" class="primary">重新開始</button>
+      </div>
+    </div>
+
+
+    <div id="callOverlay" class="call-overlay hidden" aria-live="assertive">
+      <div class="call-top">
+        <div class="call-type">LINE 語音通話</div>
+        <div id="callAttempt" class="call-attempt"></div>
+      </div>
+
+      <div class="call-profile">
+        <div class="call-avatar" aria-hidden="true"></div>
+        <div class="call-name">彥廷</div>
+        <div id="callStatus" class="call-status">來電中⋯</div>
+        <div id="callTimer" class="call-timer"></div>
+      </div>
+
+      <div class="call-actions">
+        <div class="call-action">
+          <button id="declineCall" class="call-decline" type="button" aria-label="拒接">☎</button>
+          <span id="declineLabel">拒接</span>
+        </div>
+        <div class="call-action call-accept-action">
+          <button id="acceptCall" class="call-accept" type="button" aria-label="接聽">☎</button>
+          <span>接聽</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="notification" class="notification">
+      <div class="notif-icon">聊</div>
+      <div class="notif-body">
+        <div id="notifTitle" class="notif-title">彥廷</div>
+        <div id="notifText" class="notif-text"></div>
+      </div>
+    </div>
+
+    <div id="flash" class="screen-flash"></div>
+  </main>
+
+  <script>
+    const GAME_VERSION = 'v1.15.1';
+
+    const chats = {
+      yenting: document.getElementById('chatYenting'),
+      xiaoqing: document.getElementById('chatXiaoqing')
+    };
+    let activeContact = 'yenting';
+    let chat = chats.yenting;
+
+    const contactProfiles = {
+      yenting: {name:'彥廷', status:'上線中'},
+      xiaoqing: {name:'小晴', status:'上線中'}
+    };
+
+    const unread = {yenting:0, xiaoqing:0};
+    const chatWaiters = {yenting:[], xiaoqing:[]};
+    const chatTabs = document.getElementById('chatTabs');
+    const profileName = document.getElementById('profileName');
+    const headerAvatar = document.getElementById('headerAvatar');
+    const unreadYenting = document.getElementById('unreadYenting');
+    const unreadXiaoqing = document.getElementById('unreadXiaoqing');
+
+    const choiceArea = document.getElementById('choiceArea');
+    const choicesBox = document.getElementById('choices');
+    const startOverlay = document.getElementById('startOverlay');
+    const endingOverlay = document.getElementById('endingOverlay');
+    const endingCard = document.getElementById('endingCard');
+    const endingTitle = document.getElementById('endingTitle');
+    const endingText = document.getElementById('endingText');
+    const nameInput = document.getElementById('nameInput');
+    const startBtn = document.getElementById('startBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const againBtn = document.getElementById('againBtn');
+    const soundBtn = document.getElementById('soundBtn');
+    const profileSub = document.getElementById('profileSub');
+    const notification = document.getElementById('notification');
+    const notifTitle = document.getElementById('notifTitle');
+    const notifText = document.getElementById('notifText');
+    const flash = document.getElementById('flash');
+    const callOverlay = document.getElementById('callOverlay');
+    const callAttempt = document.getElementById('callAttempt');
+    const callStatus = document.getElementById('callStatus');
+    const callTimer = document.getElementById('callTimer');
+    const declineCall = document.getElementById('declineCall');
+    const acceptCall = document.getElementById('acceptCall');
+    const declineLabel = document.getElementById('declineLabel');
+
+    const state = {
+      name: '',
+      evidence: 0,
+      courage: 0,
+      appease: 0,
+      suspicion: 0,
+      boundary: 0,
+      anger: 0,
+      muted: false,
+      ended: false,
+      flags: {}
+    };
+
+    const endings = {
+      free: {
+        tone: 'good',
+        title: '成功甩掉他',
+        text: '你讓定位器搭著空電梯往上，自己則從消防梯一路下樓。\n\n彥廷追著錯誤訊號離開，真正的小晴始終待在對街便利商店。你們沒有回頭，也沒有再照任何陌生訊息改變方向。\n\n隔天，你更換所有帳號、撤銷裝置登入，並把留下的紀錄交給可信任的人保管。\n\n最後一段語音停在未播放。',
+      },
+      protected: {
+        tone: 'good',
+        title: '另一個出口',
+        text: '你沒有走向假訊息指定的地下樓層，而是臨時換了一條從未使用過的樓梯。\n\n小晴在對街等到你出現，彥廷則仍在大樓裡追著錯誤的定位訊號。\n\n那晚之後，他的帳號消失了。幾天後，一段一秒鐘的空白語音出現在封鎖名單裡。',
+      },
+      watched: {
+        tone: 'bad',
+        title: '鏡頭另一端',
+        text: '你衝去找他理論，卻發現約定地點根本沒有人。\n\n手機忽然收到一張照片。\n照片裡，是你正低頭看手機的背影。\n\n拍攝時間：現在。\n\n下一則訊息只有兩個字：\n「轉身。」',
+      },
+      trapped: {
+        tone: 'bad',
+        title: '門外的人',
+        text: '你一路安撫他，試圖讓今晚和平結束。\n\n凌晨三點，門外傳來很輕的敲門聲。\n一下、兩下、三下。\n\n接著手機亮起：\n「我知道妳還沒睡。」\n\n門鎖慢慢轉動。\n那把你以為遺失的備用鑰匙，原來一直在他手上。',
+      },
+      vanish: {
+        tone: 'neutral',
+        title: '暫時離線',
+        text: '你直接封鎖並關機。\n\n世界安靜了兩天。\n第三天，你的公司收到一束沒有署名的花。\n卡片上只寫著：\n「換帳號也要跟我說一聲啊。」\n\n你逃開了今晚，但還沒有真正離開他的視線。',
+      },
+      gaslit: {
+        tone: 'bad',
+        title: '是我想太多嗎',
+        text: '你接受了他的解釋，也開始懷疑是不是自己反應過度。\n\n後來，你換了房間、換了密碼，甚至換了窗簾。\n但他每次都能說出你今天坐在哪、和誰吃飯、幾點關燈。\n\n當你再次質問，他只回：\n「看吧，妳最近真的太敏感了。」',
+      },
+      wrongDoor: {
+        tone: 'bad',
+        title: '錯的人在等你',
+        text: '你依照「小晴」的訊息走進地下二樓。\n\n貨梯門關上後，真正的小晴終於打來：\n「我一直在一樓，妳去哪裡了？」\n\n同一時間，身後傳來剛才語音裡的那句話。\n\n「終於肯來見我了。」',
+      },
+      quietRoom: {
+        tone: 'bad',
+        title: '不要出聲',
+        text: '你決定躲在會議室裡等待一切結束。\n\n門外的腳步聲消失了，訊息也不再跳出。\n整層樓安靜得像沒有人。\n\n直到會議室的視訊螢幕自行亮起。\n畫面中是你坐在椅子上的背影。\n\n喇叭傳出低低的一句：\n「找到妳了。」',
+      },
+      baited: {
+        tone: 'good',
+        title: '空房間',
+        text: '你把定位器留在八樓會議室，手機則播放著事先錄好的腳步聲。\n\n彥廷一路追著訊號上樓。當他推開空房間的門時，你已經從另一側樓梯走到街上。\n\n手機最後亮了一次：\n「妳騙我。」\n\n你刪掉對話，沒有回答。'
+      },
+      offline: {
+        tone: 'neutral',
+        title: '九分鐘',
+        text: '你把手機和定位器留在辦公桌上，關掉電腦，從消防梯走出去。\n\n接下來九分鐘，沒有帳號、定位或鏡頭能告訴他你在哪裡。\n\n小晴在對街看見你時，你第一次覺得夜裡的街道很亮。\n\n隔天，所有密碼都被更換。那支手機再也沒有開機。'
+      },
+      silentSOS: {
+        tone: 'good',
+        title: '靜音模式',
+        text: '你沒有在聊天室輸入任何求救字眼。\n\n手機維持原本的畫面，緊急位置與門外錄音卻已經在背景送出。小晴沒有回覆，只在另一端完成了你們約定的事。\n\n門外的鑰匙插進鎖孔時，樓梯間同時傳來數個人的腳步聲。\n\n彥廷沒有成功進門。\n但他抬頭看向走廊鏡頭時，像是已經知道是誰報了警。',
+      },
+      detectedSOS: {
+        tone: 'bad',
+        title: '正在輸入',
+        text: '你在聊天室打出「幫我報警」。\n\n訊息還沒有送出，彥廷就傳來一張截圖。畫面裡，輸入框上方正顯示著「正在輸入」。\n\n門外的敲門聲停了。\n下一秒，那把備用鑰匙插進鎖孔。\n\n「妳為什麼總是要找別人來對付我？」',
+      },
+      doorBreach: {
+        tone: 'bad',
+        title: '太大聲了',
+        text: '你直接撥出求救電話。\n\n安靜的房間裡，撥號聲比想像中更清楚。門外的人沒有再敲門，而是試著轉動門把。\n\n電話接通以前，門鎖先發出喀的一聲。\n\n最後留在通話紀錄裡的，只有一通長度六秒的電話。',
+      },
+      archive: {
+        tone: 'bad',
+        title: '收藏日期：相遇以前',
+        text: '你打開那個隱藏相簿，裡面不是幾張偷拍照。\n\n是上百張。\n從你第一次見到他以前，就已經開始。\n\n最後一張是你此刻看著手機的畫面，檔名寫著：\n「終於發現了。」',
+      }
+    };
+
+
+    function updateUnreadBadge(contact){
+      const badge=contact==='yenting' ? unreadYenting : unreadXiaoqing;
+      const count=unread[contact];
+      badge.textContent=count>9 ? '9+' : String(count);
+      badge.classList.toggle('show',count>0);
+    }
+
+    function markUnread(contact){
+      if(contact===activeContact) return;
+      unread[contact]++;
+      updateUnreadBadge(contact);
+    }
+
+    function switchChat(contact,{clearUnread=true,animate=true}={}){
+      if(!chats[contact]) return;
+
+      activeContact=contact;
+      chat=chats[contact];
+
+      Object.entries(chats).forEach(([key,thread])=>{
+        thread.classList.toggle('active',key===contact);
+      });
+
+      document.querySelectorAll('.chat-tab').forEach(tab=>{
+        tab.classList.toggle('active',tab.dataset.contact===contact);
+      });
+
+      const profile=contactProfiles[contact];
+      profileName.innerHTML=`${profile.name} <span class="online-dot"></span>`;
+      profileSub.textContent=profile.status;
+      headerAvatar.classList.toggle('friend-avatar',contact==='xiaoqing');
+
+      if(clearUnread){
+        unread[contact]=0;
+        updateUnreadBadge(contact);
+      }
+
+      const waiting=chatWaiters[contact].splice(0);
+      waiting.forEach(resolve=>resolve());
+
+      if(animate){
+        chat.classList.remove('chat-switch-flash');
+        void chat.offsetWidth;
+        chat.classList.add('chat-switch-flash');
+      }
+
+      scrollBottom();
+    }
+
+    function targetChat(contact){
+      return chats[contact] || chats.yenting;
+    }
+
+    function waitForChat(contact){
+      if(activeContact===contact) return Promise.resolve();
+      return new Promise(resolve=>chatWaiters[contact].push(resolve));
+    }
+
+    chatTabs.addEventListener('click',event=>{
+      const tab=event.target.closest('.chat-tab');
+      if(!tab) return;
+      switchChat(tab.dataset.contact);
+    });
+
+    let gameClockMinutes=21*60+47;
+    let hasMessageAtCurrentTime=false;
+
+    function normalizeClockMinutes(minutes){
+      const day=24*60;
+      return ((minutes%day)+day)%day;
+    }
+
+    function setGameTime(hour,minute){
+      gameClockMinutes=normalizeClockMinutes(Number(hour)*60+Number(minute));
+      hasMessageAtCurrentTime=false;
+      setClock();
+    }
+
+    function advanceGameTime(minutes=1){
+      gameClockMinutes=normalizeClockMinutes(gameClockMinutes+minutes);
+      setClock();
+    }
+
+    function nowTime(){
+      const hour=Math.floor(gameClockMinutes/60);
+      const minute=gameClockMinutes%60;
+      return `${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}`;
+    }
+
+    function prepareMessageTime(keepSameMinute=false){
+      if(hasMessageAtCurrentTime && !keepSameMinute){
+        advanceGameTime(1);
+      }
+      hasMessageAtCurrentTime=true;
+      setClock();
+      return nowTime();
+    }
+
+    function setClock(){
+      document.getElementById('clock').textContent=nowTime();
+    }
+    setClock();
+
+    function wait(ms){ return new Promise(resolve => setTimeout(resolve, ms)); }
+
+    let audioCtx;
+    function beep(type='message'){
+      if(state.muted) return;
+      try{
+        audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        const t = audioCtx.currentTime;
+
+        if(type === 'message'){
+          osc.type='sine';
+          osc.frequency.setValueAtTime(720,t);
+          osc.frequency.exponentialRampToValueAtTime(930,t+.08);
+          gain.gain.setValueAtTime(.05,t);
+          gain.gain.exponentialRampToValueAtTime(.001,t+.13);
+          osc.start(t);osc.stop(t+.14);
+        }else{
+          osc.type='sawtooth';
+          osc.frequency.setValueAtTime(105,t);
+          osc.frequency.exponentialRampToValueAtTime(45,t+.42);
+          gain.gain.setValueAtTime(.06,t);
+          gain.gain.exponentialRampToValueAtTime(.001,t+.45);
+          osc.start(t);osc.stop(t+.46);
+        }
+      }catch(e){}
+    }
+
+    function scrollBottom(contact=activeContact){
+      const target=targetChat(contact);
+      requestAnimationFrame(()=>target.scrollTop = target.scrollHeight);
+    }
+
+    function addSystem(text,danger=false,contact=activeContact){
+      const target=targetChat(contact);
+      const el=document.createElement('div');
+      el.className='system-note'+(danger?' danger':'');
+      el.textContent=text;
+      target.appendChild(el);
+      markUnread(contact);
+      scrollBottom(contact);
+    }
+
+    function addDate(text,contact=activeContact){
+      const target=targetChat(contact);
+      const el=document.createElement('div');
+      el.className='date-pill';
+      el.textContent=text;
+      target.appendChild(el);
+      scrollBottom(contact);
+    }
+
+    function addMessage(side,text,{
+      creepy=false,
+      attachment=false,
+      spam=false,
+      keepSameMinute=false,
+      contact=activeContact
+    }={}){
+      const target=targetChat(contact);
+      const row=document.createElement('div');
+      row.className=`row ${side}${spam?' spam':''}`;
+
+      if(side==='other'){
+        const av=document.createElement('div');
+        av.className='mini-avatar'+(contact==='xiaoqing'?' friend-avatar':'');
+        row.appendChild(av);
+      }
+
+      const wrap=document.createElement('div');
+      wrap.className='bubble-wrap';
+
+      const bubble=document.createElement('div');
+      bubble.className='bubble'+(creepy?' creepy':'');
+      if(attachment){
+        bubble.className='attachment';
+        bubble.innerHTML=`
+          <div class="attachment-img">⌖</div>
+          <div class="attachment-caption">${text}</div>
+        `;
+      }else{
+        bubble.textContent=text;
+      }
+
+      const messageTimestamp=prepareMessageTime(keepSameMinute);
+      const meta=document.createElement('div');
+      meta.className='meta';
+      meta.innerHTML=side==='mine' ? `已讀<br>${messageTimestamp}` : messageTimestamp;
+
+      wrap.appendChild(bubble);
+      wrap.appendChild(meta);
+      row.appendChild(wrap);
+      target.appendChild(row);
+      markUnread(contact);
+      scrollBottom(contact);
+
+      if(side==='other'){
+        beep(creepy?'horror':'message');
+        showNotification(text.replace(/\n/g,' '),contact);
+      }
+    }
+
+
+    let cachedVoices=[];
+    let voicePlaybackToken=0;
+
+    function refreshVoices(){
+      if(!('speechSynthesis' in window)) return;
+      cachedVoices=window.speechSynthesis.getVoices() || [];
+      populateVoiceSelectors();
+    }
+
+    function availableUiVoices(){
+      return cachedVoices
+        .filter(voice=>/^zh/i.test(voice.lang || ''))
+        .sort((a,b)=>a.name.localeCompare(b.name));
+    }
+
+    function safeStorageGet(key){
+      try{
+        return window.localStorage?.getItem(key) || '';
+      }catch(error){
+        return '';
+      }
+    }
+
+    function safeStorageSet(key,value){
+      try{
+        window.localStorage?.setItem(key,value);
+      }catch(error){}
+    }
+
+    function populateVoiceSelect(select,sender){
+      if(!select) return;
+      const previous=select.value;
+      const voices=availableUiVoices();
+      select.innerHTML='';
+
+      const automatic=document.createElement('option');
+      automatic.value='';
+      automatic.textContent='自動選擇';
+      select.appendChild(automatic);
+
+      voices.forEach(voice=>{
+        const option=document.createElement('option');
+        option.value=voice.name;
+        option.textContent=voice.name;
+        select.appendChild(option);
+      });
+
+      const stored=safeStorageGet(`voice-${sender}`);
+      const wanted=stored || previous;
+      if(wanted && voices.some(voice=>voice.name===wanted)){
+        select.value=wanted;
+      }
+    }
+
+    function populateVoiceSelectors(){}
+
+    refreshVoices();
+    if('speechSynthesis' in window){
+      window.speechSynthesis.addEventListener?.('voiceschanged',refreshVoices);
+    }
+
+    function selectedVoiceName(){
+      return '';
+    }
+
+    function pickVoice(sender='彥廷'){
+      const selected=selectedVoiceName(sender);
+      if(selected){
+        const exact=cachedVoices.find(voice=>voice.name===selected);
+        if(exact) return exact;
+      }
+
+      const preferredNames = sender==='小晴'
+        ? /HsiaoChen|Xiaoxiao|Mei-Jia|Meijia|美佳|曉辰|Ting-Ting/i
+        : /YunJhe|Yunxi|Yunyang|Sin-ji|雲哲|雲希|雲揚/i;
+
+      return cachedVoices.find(voice=>preferredNames.test(voice.name))
+        || cachedVoices.find(voice=>/zh-TW/i.test(voice.lang) && voice.localService)
+        || cachedVoices.find(voice=>/zh-TW/i.test(voice.lang))
+        || cachedVoices.find(voice=>/^zh/i.test(voice.lang) && voice.localService)
+        || cachedVoices.find(voice=>/^zh/i.test(voice.lang))
+        || cachedVoices.find(voice=>voice.localService)
+        || cachedVoices[0];
+    }
+
+    function detectTextLanguage(text){
+      const value=(text || '').trim();
+      if(/[ぁ-んァ-ヶ]/.test(value)) return 'ja-JP';
+
+      const latin=(value.match(/[A-Za-z]/g) || []).length;
+      const cjk=(value.match(/[\u3400-\u9FFF]/g) || []).length;
+      if(latin>0 && latin>=Math.max(2,cjk)) return 'en-US';
+
+      return 'zh-TW';
+    }
+
+    function pickLanguageVoice(lang,sender='彥廷'){
+      const normalized=lang.toLowerCase();
+      const prefix=normalized.split('-')[0];
+
+      return cachedVoices.find(voice=>
+        voice.lang?.toLowerCase()===normalized && voice.localService
+      ) || cachedVoices.find(voice=>
+        voice.lang?.toLowerCase()===normalized
+      ) || cachedVoices.find(voice=>
+        voice.lang?.toLowerCase().startsWith(prefix) && voice.localService
+      ) || cachedVoices.find(voice=>
+        voice.lang?.toLowerCase().startsWith(prefix)
+      ) || pickVoice(sender);
+    }
+
+    function normalizeVoiceText(text){
+      return text
+        .replace(/\s+/g,' ')
+        .replace(/妳/g,'你')
+        .replace(/……/g,'…')
+        .trim();
+    }
+
+    function speechSegments(text,sender,language='auto'){
+      const spokenName=(state.name || '').trim();
+      const parts=text.split('{name}');
+      const segments=[];
+
+      parts.forEach((part,index)=>{
+        if(part){
+          const normalized=normalizeVoiceText(interpolate(part));
+          const lang=language==='auto' ? detectTextLanguage(normalized) : language;
+          segments.push({
+            text:normalized,
+            voice:lang.startsWith('zh') ? pickVoice(sender) : pickLanguageVoice(lang,sender),
+            lang
+          });
+        }
+
+        if(index<parts.length-1 && spokenName){
+          const lang=detectTextLanguage(spokenName);
+          segments.push({
+            text:spokenName,
+            voice:lang.startsWith('zh') ? pickVoice(sender) : pickLanguageVoice(lang,sender),
+            lang
+          });
+        }
+      });
+
+      return segments.filter(segment=>segment.text);
+    }
+
+    function playVoice(text, element,{
+      sender='彥廷',
+      pitch,
+      rate,
+      volume=.95,
+      language='auto'
+    }={}){
+      if(state.muted) return;
+      if(!('speechSynthesis' in window)){
+        beep('message');
+        return;
+      }
+
+      voicePlaybackToken++;
+      window.speechSynthesis.cancel();
+      const token=voicePlaybackToken;
+
+      document.querySelectorAll('.voice-message.playing').forEach(item=>{
+        item.classList.remove('playing');
+        const button=item.querySelector('.voice-play');
+        if(button) button.textContent='▶';
+      });
+
+      const playButton=element?.querySelector('.voice-play');
+      const segments=speechSegments(text,sender,language);
+
+      if(element) element.classList.add('playing');
+      if(playButton) playButton.textContent='■';
+
+      const finish=()=>{
+        if(token!==voicePlaybackToken) return;
+        if(element) element.classList.remove('playing');
+        if(playButton) playButton.textContent='▶';
+      };
+
+      const speakSegment=index=>{
+        if(token!==voicePlaybackToken) return finish();
+        if(index>=segments.length) return finish();
+
+        const segment=segments[index];
+        const utterance=new SpeechSynthesisUtterance(segment.text);
+        if(segment.voice) utterance.voice=segment.voice;
+        utterance.lang=segment.lang;
+        utterance.pitch=Math.min(1.03,Math.max(.97,pitch ?? 1));
+        utterance.rate=Math.min(1.03,Math.max(.94,rate ?? .99));
+        utterance.volume=volume;
+        utterance.onend=()=>setTimeout(()=>speakSegment(index+1),55);
+        utterance.onerror=finish;
+        window.speechSynthesis.speak(utterance);
+      };
+
+      speakSegment(0);
+    }
+
+    function previewVoice(sender){
+      const sample=sender==='小晴'
+        ? '你先不要回家，我在對面等你。'
+        : '不要走。你回頭看我一下。';
+      playVoice(sample,null,{sender});
+    }
+
+    function addVoiceMessage(sender,text,{
+      duration='00:08',
+      creepy=true,
+      pitch,
+      rate,
+      hint='點擊播放',
+      contact=sender==='小晴' ? 'xiaoqing' : 'yenting',
+      language='auto'
+    }={}){
+      const target=targetChat(contact);
+      const row=document.createElement('div');
+      row.className='row other voice-row';
+
+      const av=document.createElement('div');
+      av.className='mini-avatar'+(contact==='xiaoqing'?' friend-avatar':'');
+      row.appendChild(av);
+
+      const wrap=document.createElement('div');
+      wrap.className='bubble-wrap';
+
+      const bubble=document.createElement('div');
+      bubble.className='bubble voice-message'+(creepy?' creepy':'');
+      bubble.setAttribute('role','button');
+      bubble.setAttribute('tabindex','0');
+      bubble.setAttribute('aria-label',`${sender}的語音訊息，${duration}`);
+
+      const bars=[5,9,14,7,15,10,6,13,8,15,10,5,12,9,14,6,11,5];
+      bubble.innerHTML=`
+        <div class="voice-sender">${sender}</div>
+        <div class="voice-main">
+          <button class="voice-play" type="button" aria-label="播放語音">▶</button>
+          <div class="voice-wave">
+            ${bars.map((height,index)=>`<i style="--h:${height}px;--i:${index}"></i>`).join('')}
+          </div>
+          <div class="voice-time">${duration}</div>
+        </div>
+        <div class="voice-hint">${hint}</div>
+      `;
+
+      const activate=()=>playVoice(text,bubble,{sender,pitch,rate,language});
+      bubble.addEventListener('click',activate);
+      bubble.addEventListener('keydown',event=>{
+        if(event.key==='Enter' || event.key===' '){
+          event.preventDefault();
+          activate();
+        }
+      });
+
+      const messageTimestamp=prepareMessageTime();
+      const meta=document.createElement('div');
+      meta.className='meta';
+      meta.textContent=messageTimestamp;
+
+      wrap.appendChild(bubble);
+      wrap.appendChild(meta);
+      row.appendChild(wrap);
+      target.appendChild(row);
+      markUnread(contact);
+      scrollBottom(contact);
+      beep(creepy?'horror':'message');
+      showNotification(`${sender}傳送了一段語音訊息`,contact);
+      return bubble;
+    }
+
+
+    let ringtoneTimer=null;
+    let activeCallTimer=null;
+    let callSeconds=0;
+
+    function ringTonePulse(){
+      if(state.muted) return;
+      try{
+        audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
+        if(audioCtx.state==='suspended') audioCtx.resume();
+
+        const start=audioCtx.currentTime;
+        const notes=[
+          {frequency:660,offset:0,duration:.18},
+          {frequency:880,offset:.22,duration:.2},
+          {frequency:660,offset:.52,duration:.18},
+          {frequency:880,offset:.74,duration:.24}
+        ];
+
+        notes.forEach(note=>{
+          const osc=audioCtx.createOscillator();
+          const gain=audioCtx.createGain();
+          osc.type='sine';
+          osc.frequency.setValueAtTime(note.frequency,start+note.offset);
+          gain.gain.setValueAtTime(.001,start+note.offset);
+          gain.gain.exponentialRampToValueAtTime(.075,start+note.offset+.025);
+          gain.gain.exponentialRampToValueAtTime(.001,start+note.offset+note.duration);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(start+note.offset);
+          osc.stop(start+note.offset+note.duration+.03);
+        });
+      }catch(error){}
+    }
+
+    function startRingtone(){
+      stopRingtone();
+      ringTonePulse();
+      ringtoneTimer=setInterval(ringTonePulse,1450);
+    }
+
+    function stopRingtone(){
+      if(ringtoneTimer){
+        clearInterval(ringtoneTimer);
+        ringtoneTimer=null;
+      }
+    }
+
+    function startCallTimer(){
+      stopCallTimer();
+      callSeconds=0;
+      callTimer.textContent='00:00';
+      activeCallTimer=setInterval(()=>{
+        callSeconds++;
+        const minutes=Math.floor(callSeconds/60);
+        const seconds=callSeconds%60;
+        callTimer.textContent=`${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+      },1000);
+    }
+
+    function stopCallTimer(){
+      if(activeCallTimer){
+        clearInterval(activeCallTimer);
+        activeCallTimer=null;
+      }
+    }
+
+    function speakCallLine(text){
+      return new Promise(resolve=>{
+        if(state.muted || !('speechSynthesis' in window)){
+          setTimeout(resolve,1200);
+          return;
+        }
+
+        voicePlaybackToken++;
+        window.speechSynthesis.cancel();
+        const token=voicePlaybackToken;
+        const segments=speechSegments(text,'彥廷','auto');
+
+        const speakNext=index=>{
+          if(token!==voicePlaybackToken){
+            resolve();
+            return;
+          }
+          if(index>=segments.length){
+            resolve();
+            return;
+          }
+
+          const segment=segments[index];
+          const utterance=new SpeechSynthesisUtterance(segment.text);
+          if(segment.voice) utterance.voice=segment.voice;
+          utterance.lang=segment.lang;
+          utterance.pitch=.98;
+          utterance.rate=.96;
+          utterance.volume=.96;
+          utterance.onend=()=>setTimeout(()=>speakNext(index+1),70);
+          utterance.onerror=()=>resolve();
+          window.speechSynthesis.speak(utterance);
+        };
+
+        speakNext(0);
+      });
+    }
+
+    function hideCallOverlay(){
+      stopRingtone();
+      stopCallTimer();
+      callOverlay.classList.add('hidden');
+      callOverlay.classList.remove('ringing','connected');
+      callTimer.textContent='';
+      declineLabel.textContent='拒接';
+      acceptCall.disabled=false;
+      declineCall.disabled=false;
+    }
+
+    function incomingCall({
+      attempt=1,
+      total=1,
+      line='{name}，接電話。',
+      timeout=7000
+    }={}){
+      return new Promise(resolve=>{
+        let settled=false;
+        let timeoutId;
+        let connectedAt=0;
+
+        const finish=result=>{
+          if(settled) return;
+          settled=true;
+          clearTimeout(timeoutId);
+          declineCall.removeEventListener('click',decline);
+          acceptCall.removeEventListener('click',accept);
+          hideCallOverlay();
+          resolve(result);
+        };
+
+        const decline=()=>{
+          if(callOverlay.classList.contains('connected')){
+            const callLength=connectedAt ? performance.now()-connectedAt : 9999;
+            voicePlaybackToken++;
+            if('speechSynthesis' in window) window.speechSynthesis.cancel();
+            finish(callLength<1900 ? 'quickHangup' : 'accepted');
+            return;
+          }
+          finish('declined');
+        };
+
+        const accept=async()=>{
+          if(settled) return;
+          clearTimeout(timeoutId);
+          stopRingtone();
+          callOverlay.classList.remove('ringing');
+          callOverlay.classList.add('connected');
+          callStatus.textContent='通話中';
+          declineLabel.textContent='掛斷';
+          connectedAt=performance.now();
+          startCallTimer();
+          acceptCall.disabled=true;
+          await speakCallLine(line);
+          await wait(280);
+          finish('accepted');
+        };
+
+        callAttempt.textContent=total>1 ? `第 ${attempt} 通來電` : '';
+        callStatus.textContent='來電中⋯';
+        callTimer.textContent='';
+        callOverlay.classList.remove('hidden','connected');
+        callOverlay.classList.add('ringing');
+
+        declineCall.addEventListener('click',decline);
+        acceptCall.addEventListener('click',accept);
+
+        startRingtone();
+
+        if(state.flags.willAnswerNext){
+          state.flags.willAnswerNext=false;
+          setTimeout(()=>accept(),780);
+        }
+
+        timeoutId=setTimeout(()=>finish('missed'),timeout);
+      });
+    }
+
+
+    async function reactToQuickHangup(){
+      state.anger+=2;
+      state.flags.quickHangups=(state.flags.quickHangups || 0)+1;
+
+      addSystem('通話接通後立刻被掛斷。',true,'yenting');
+      addMessage(
+        'other',
+        interpolate(
+          state.flags.quickHangups>=2
+            ? '{name}，妳又掛我電話。妳是不是以為躲在家裡我就找不到妳？'
+            : '{name}，妳敢掛我電話？'
+        ),
+        {creepy:true,contact:'yenting'}
+      );
+
+      if(state.flags.quickHangups>=2){
+        state.flags.threatenedHome=true;
+        addVoiceMessage(
+          '彥廷',
+          '{name}，再掛一次。我現在就去妳家。',
+          {duration:'00:07',pitch:.82,rate:.9,contact:'yenting'}
+        );
+      }
+
+      await wait(520);
+    }
+
+    async function callBarrage({
+      count=3,
+      lines=[],
+      timeout=6500
+    }={}){
+      choicesBox.innerHTML='';
+      choiceArea.classList.add('hidden');
+
+      for(let index=0;index<count;index++){
+        const line=lines[index] || lines[lines.length-1] || '{name}，接電話。';
+        const result=await incomingCall({
+          attempt:index+1,
+          total:count,
+          line,
+          timeout
+        });
+
+        if(result==='quickHangup'){
+          await reactToQuickHangup();
+        }else if(result==='accepted'){
+          addSystem(`通話結束　${nowTime()}`,true,'yenting');
+        }else{
+          if(result==='declined') state.anger+=1;
+          addSystem(`未接來電　彥廷　${nowTime()}`,true,'yenting');
+        }
+
+        if(index<count-1){
+          advanceGameTime(1);
+          await wait(520);
+        }
+      }
+    }
+
+
+    async function relentlessCalls({
+      lines=[],
+      timeout=5400,
+      maxAttempts=7,
+      pauseEvery=4
+    }={}){
+      choicesBox.innerHTML='';
+      choiceArea.classList.add('hidden');
+
+      let attempt=0;
+
+      while(attempt<maxAttempts){
+        attempt++;
+
+        const line=lines[(attempt-1)%Math.max(1,lines.length)]
+          || '{name}，接電話。';
+
+        const result=await incomingCall({
+          attempt,
+          total:maxAttempts,
+          line,
+          timeout
+        });
+
+        if(result==='quickHangup'){
+          await reactToQuickHangup();
+          advanceGameTime(1);
+          await wait(260);
+          continue;
+        }
+
+        if(result==='accepted'){
+          addSystem(`通話結束　${nowTime()}`,true,'yenting');
+          state.flags.answeredRelentlessCall=true;
+          return 'answered';
+        }
+
+        if(result==='declined') state.anger+=1;
+        addSystem(`未接來電　彥廷　${nowTime()}`,true,'yenting');
+        advanceGameTime(1);
+
+        if(attempt%pauseEvery===0 && attempt<maxAttempts){
+          const action=await choose([
+            {
+              id:'answerNext',
+              text:'接起下一通。',
+              action:true,
+              delta:{courage:1}
+            },
+            {
+              id:'keepRejecting',
+              text:'繼續拒接。',
+              action:true,
+              delta:{anger:1,boundary:1}
+            },
+            {
+              id:'powerOff',
+              text:'直接關機。',
+              action:true,
+              delta:{courage:1,boundary:2}
+            }
+          ]);
+
+          if(action==='powerOff'){
+            state.flags.phonePoweredOff=true;
+            addSystem('手機已關機。來電畫面消失。',false,'yenting');
+            return 'poweredOff';
+          }
+
+          if(action==='answerNext'){
+            state.flags.willAnswerNext=true;
+          }
+        }
+
+        await wait(380);
+      }
+
+      state.flags.callsContinue=true;
+      addSystem(`未接來電 ${maxAttempts} 通。螢幕熄滅後，又立刻亮起。`,true,'yenting');
+      return 'stillCalling';
+    }
+
+    async function friendOther(text,delay=650,{creepy=false,compromised=false}={}){
+      choicesBox.innerHTML='';
+      choiceArea.classList.add('hidden');
+      showTyping('xiaoqing');
+      await wait(delay);
+      hideTyping('xiaoqing');
+      addMessage('other',interpolate(text),{
+        creepy:creepy || compromised,
+        contact:'xiaoqing'
+      });
+
+      if(activeContact!=='xiaoqing'){
+        await waitForChat('xiaoqing');
+      }
+      await wait(280);
+    }
+
+    function friendMine(text){
+      addMessage('mine',interpolate(text),{contact:'xiaoqing'});
+    }
+
+
+    function showNotification(text,contact=activeContact){
+      notifTitle.textContent=contactProfiles[contact].name;
+      notifText.textContent=text;
+      notification.dataset.contact=contact;
+      notification.classList.add('show');
+      clearTimeout(showNotification.timer);
+      showNotification.timer=setTimeout(()=>notification.classList.remove('show'),1700);
+    }
+
+    notification.addEventListener('click',()=>{
+      const contact=notification.dataset.contact;
+      if(contact) switchChat(contact);
+      notification.classList.remove('show');
+    });
+
+    function showTyping(contact=activeContact){
+      const target=targetChat(contact);
+      const row=document.createElement('div');
+      row.className='row other';
+      row.id=`typingRow-${contact}`;
+      row.innerHTML=`
+        <div class="mini-avatar${contact==='xiaoqing'?' friend-avatar':''}"></div>
+        <div class="bubble typing"><span></span><span></span><span></span></div>
+      `;
+      target.appendChild(row);
+      if(contact===activeContact) profileSub.textContent='正在輸入⋯';
+      scrollBottom(contact);
+    }
+
+    function hideTyping(contact=activeContact){
+      document.getElementById(`typingRow-${contact}`)?.remove();
+      if(contact===activeContact) profileSub.textContent=contactProfiles[contact].status;
+    }
+
+    async function other(text, delay=900, options={}){
+      choicesBox.innerHTML='';
+      choiceArea.classList.add('hidden');
+      showTyping('yenting');
+      await wait(delay);
+      hideTyping('yenting');
+      addMessage('other', interpolate(text), {...options,contact:'yenting'});
+
+      if(activeContact!=='yenting'){
+        await waitForChat('yenting');
+      }
+      await wait(280);
+    }
+
+    function mine(text){
+      addMessage('mine',interpolate(text),{contact:activeContact});
+    }
+
+    function interpolate(text){
+      return text.replaceAll('{name}',state.name);
+    }
+
+    function flashScreen(){
+      flash.classList.remove('active');
+      void flash.offsetWidth;
+      flash.classList.add('active');
+      chat.classList.add('glitch');
+      setTimeout(()=>chat.classList.remove('glitch'),600);
+    }
+
+    async function spamMessages(lines, interval=170){
+      const target=targetChat('yenting');
+      choicesBox.innerHTML='';
+      choiceArea.classList.add('hidden');
+      hideTyping('yenting');
+      if(activeContact==='yenting') profileSub.textContent='傳送大量訊息中';
+      target.classList.add('panic-mode');
+
+      for(let i=0;i<lines.length;i++){
+        if(i>0 && i%8===0){
+          advanceGameTime(1);
+        }
+        addMessage('other',interpolate(lines[i]),{
+          creepy:true,
+          spam:true,
+          keepSameMinute:true,
+          contact:'yenting'
+        });
+        if(activeContact==='yenting' && (i===1 || i===3 || i===lines.length-1)){
+          flashScreen();
+        }
+        await wait(Math.max(48,interval-i*2));
+      }
+
+      if(activeContact!=='yenting'){
+        await waitForChat('yenting');
+      }
+      profileSub.textContent='上線中';
+      setTimeout(()=>target.classList.remove('panic-mode'),900);
+      await wait(450);
+    }
+
+    function choose(options){
+      return new Promise(resolve=>{
+        const choiceContact=activeContact;
+        choicesBox.innerHTML='';
+        options.forEach((opt,index)=>{
+          const btn=document.createElement('button');
+          btn.className='choice-btn'+(opt.danger?' danger':'');
+          btn.textContent=interpolate(opt.label || opt.text);
+          btn.addEventListener('click',()=>{
+            if(state.ended) return;
+            const content=interpolate(opt.sendText || opt.text);
+            if(opt.action){
+              addSystem(content,Boolean(opt.danger),choiceContact);
+            }else{
+              addMessage('mine',content,{contact:choiceContact});
+            }
+            choiceArea.classList.add('hidden');
+            choicesBox.innerHTML='';
+            if(opt.delta){
+              Object.entries(opt.delta).forEach(([key,value])=>state[key]+=value);
+            }
+            if(opt.flag) state.flags[opt.flag]=true;
+            resolve(opt.id);
+          },{once:true});
+          choicesBox.appendChild(btn);
+          if(index<options.length-1){
+            choicesBox.appendChild(document.createElement('div')).style.height='8px';
+          }
+        });
+        choiceArea.classList.remove('hidden');
+        scrollBottom(choiceContact);
+      });
+    }
+
+    function askSecretInput({
+      placeholder='輸入口頭約定的暗號',
+      buttonText='記住',
+      maxLength=20,
+      hint=''
+    }={}){
+      return new Promise(resolve=>{
+        const choiceTitle=choiceArea.querySelector('.choice-title');
+        const previousTitle=choiceTitle.textContent;
+        choiceTitle.textContent='你與小晴當面約定暗號';
+        choicesBox.innerHTML='';
+
+        const wrapper=document.createElement('div');
+        wrapper.className='custom-reply';
+
+        const input=document.createElement('input');
+        input.className='custom-reply-input';
+        input.type='text';
+        input.maxLength=maxLength;
+        input.placeholder=placeholder;
+        input.autocomplete='off';
+
+        const send=document.createElement('button');
+        send.className='custom-reply-send';
+        send.type='button';
+        send.textContent=buttonText;
+
+        const finish=()=>{
+          const value=input.value.trim();
+          if(!value){
+            input.focus();
+            input.animate(
+              [
+                {transform:'translateX(0)'},
+                {transform:'translateX(-5px)'},
+                {transform:'translateX(5px)'},
+                {transform:'translateX(0)'}
+              ],
+              {duration:220}
+            );
+            return;
+          }
+
+          choiceArea.classList.add('hidden');
+          choicesBox.innerHTML='';
+          choiceTitle.textContent=previousTitle;
+          resolve(value);
+        };
+
+        send.addEventListener('click',finish);
+        input.addEventListener('keydown',event=>{
+          if(event.key==='Enter'){
+            event.preventDefault();
+            finish();
+          }
+        });
+
+        wrapper.appendChild(input);
+        wrapper.appendChild(send);
+        choicesBox.appendChild(wrapper);
+
+        if(hint){
+          const hintNode=document.createElement('div');
+          hintNode.className='custom-reply-hint';
+          hintNode.textContent=hint;
+          choicesBox.appendChild(hintNode);
+        }
+
+        choiceArea.classList.remove('hidden');
+        setTimeout(()=>input.focus(),80);
+      });
+    }
+
+    async function timeJump(label){
+      await wait(450);
+
+      const explicitTime=label.match(/(\d{1,2}):(\d{2})/);
+      if(explicitTime){
+        setGameTime(Number(explicitTime[1]),Number(explicitTime[2]));
+      }else if(label.includes('三週前')){
+        setGameTime(18,42);
+      }else if(label.includes('一週前')){
+        setGameTime(12,36);
+      }else if(label.includes('隔天')){
+        setGameTime(20,52);
+      }
+
+      addDate(label,'yenting');
+      addDate(label,'xiaoqing');
+      await wait(350);
+    }
+
+    async function investigatePhone(){
+      const checked=new Set();
+      for(let turn=0;turn<2;turn++){
+        const options=[
+          {
+            id:'devices',
+            text:'查看帳號登入裝置',
+            action:true,
+            delta:{evidence:2,suspicion:1},
+            flag:'checkedDevices'
+          },
+          {
+            id:'charm',
+            text:'拆開他送的包包吊飾',
+            action:true,
+            delta:{evidence:2,courage:1},
+            flag:'checkedCharm'
+          },
+          {
+            id:'album',
+            text:'查看被隱藏的共享相簿',
+            action:true,
+            delta:{evidence:3,suspicion:2},
+            flag:'checkedAlbum'
+          }
+        ].filter(option=>!checked.has(option.id));
+
+        const selected=await choose(options);
+        checked.add(selected);
+
+        if(selected==='devices'){
+          await wait(450);
+          addSystem('帳號安全中心：發現陌生裝置「YENTING-MBP」，兩分鐘前仍在線上。',true);
+          await other('妳今天怎麼突然一直改密碼？',700,{creepy:true});
+        }
+
+        if(selected==='charm'){
+          await wait(450);
+          addSystem('吊飾內層藏著一枚正在發送訊號的定位配件。',true);
+          await other('不要把那個吊飾拆壞。\n那是我特地替妳挑的。',700,{creepy:true});
+        }
+
+        if(selected==='album'){
+          await wait(450);
+          addSystem('共享相簿建立日期：你們認識的四個月前。',true);
+          addMessage('other','相簿封面：雨天的公車站。',{attachment:true});
+          await wait(500);
+          await other('妳短髮的時候也很好看。',700,{creepy:true});
+        }
+      }
+    }
+
+
+
+    async function highAngerHomeMission(){
+      state.flags.homeThreatTriggered=true;
+
+      await other('{name}，妳今晚罵得很開心吧。',520,{creepy:true});
+      await other('我已經到妳家樓下了。妳現在可以當面再說一次。',620,{creepy:true});
+      addVoiceMessage(
+        '彥廷',
+        '{name}，開門。我沒有要傷害妳，我只是想把事情說清楚。',
+        {duration:'00:09',pitch:.81,rate:.89,contact:'yenting'}
+      );
+
+      addSystem('電梯停在你的樓層。走廊傳來很慢的腳步聲。',true,'yenting');
+      await wait(650);
+
+      await friendOther('先不要回我。不要在聊天室打敏感字。用剛才設定的靜音求助。');
+
+      const emergencyAction=await choose([
+        {
+          id:'silentSOS',
+          text:'按住側鍵，讓手機在背景送出位置與門外錄音。',
+          action:true,
+          delta:{courage:3,boundary:2}
+        },
+        {
+          id:'typePolice',
+          text:'直接在小晴聊天室輸入「幫我報警」。',
+          delta:{courage:1},
+          danger:true
+        },
+        {
+          id:'callPolice',
+          text:'直接撥出求救電話。',
+          action:true,
+          delta:{courage:2},
+          danger:true
+        },
+        {
+          id:'insultDoor',
+          text:'隔著門大罵：「少演受害者，從我家門口滾開！」',
+          action:true,
+          delta:{anger:5,courage:2},
+          danger:true
+        }
+      ]);
+
+      if(emergencyAction==='typePolice'){
+        addMessage('mine','幫我報警',{contact:'xiaoqing'});
+        await wait(350);
+        await other('妳在輸入什麼？',420,{creepy:true});
+        addSystem('彥廷傳來一張「正在輸入」的截圖。',true,'yenting');
+        return endGame('detectedSOS');
+      }
+
+      if(emergencyAction==='callPolice'){
+        addSystem('你撥出求救電話。安靜的房間裡，撥號聲清楚得刺耳。',true,'xiaoqing');
+        await other('妳在打給誰？',420,{creepy:true});
+        return endGame('doorBreach');
+      }
+
+      if(emergencyAction==='insultDoor'){
+        await other('很好。',420,{creepy:true});
+        await other('妳終於肯承認妳就在裡面。',450,{creepy:true});
+        state.flags.revealedAtHome=true;
+        return endGame('doorBreach');
+      }
+
+      addSystem('緊急位置與背景錄音已送出。手機畫面沒有改變。',false,'xiaoqing');
+      state.flags.silentSOSSent=true;
+      await wait(500);
+
+      await other('妳手機剛剛亮了一下。',480,{creepy:true});
+      await other('妳在跟誰聯絡？',500,{creepy:true});
+
+      const coverStory=await choose([
+        {
+          id:'deliveryCover',
+          text:'外送平台提醒我訂單快到了。',
+          delta:{appease:1,courage:1}
+        },
+        {
+          id:'batteryCover',
+          text:'只是低電量通知。',
+          delta:{appease:1}
+        },
+        {
+          id:'truthSOS',
+          text:'我已經報警了，你等著。',
+          delta:{anger:5,courage:2},
+          danger:true
+        },
+        {
+          id:'moreInsult',
+          text:'我的手機亮不亮都不關你的事，控制狂。',
+          delta:{anger:4,courage:1},
+          danger:true
+        }
+      ]);
+
+      if(coverStory==='truthSOS' || coverStory==='moreInsult'){
+        await other('妳真的以為他們來得比我快？',430,{creepy:true});
+        addSystem('鑰匙插進鎖孔。',true,'yenting');
+        return endGame('detectedSOS');
+      }
+
+      await other(
+        coverStory==='deliveryCover'
+          ? '這麼晚還叫外送？'
+          : '妳手機不是還有四十七％嗎？',
+        480,
+        {creepy:true}
+      );
+
+      const staySilent=await choose([
+        {
+          id:'lockAndRecord',
+          text:'反鎖內門，把手機留在門邊持續錄音。',
+          action:true,
+          delta:{evidence:2,courage:2}
+        },
+        {
+          id:'replyAgain',
+          text:'繼續回訊息拖延他。',
+          delta:{appease:1}
+        },
+        {
+          id:'openDoor',
+          text:'打開門，叫他立刻離開。',
+          action:true,
+          delta:{courage:1},
+          danger:true
+        }
+      ]);
+
+      if(staySilent==='openDoor'){
+        return endGame('doorBreach');
+      }
+
+      if(staySilent==='replyAgain'){
+        await other('妳回得這麼快，果然一直拿著手機。',420,{creepy:true});
+        await other('把門打開。',430,{creepy:true});
+      }else{
+        addSystem('門外的聲音與鑰匙碰撞聲持續被錄下。',false,'xiaoqing');
+      }
+
+      await wait(700);
+      addSystem('樓梯間傳來數個人的腳步聲。門外的人突然停止轉動鑰匙。',true,'yenting');
+      await friendOther('位置收到了。我沒有回妳訊息。人已經到妳那層。');
+      await other('{name}，妳居然真的報警。',520,{creepy:true});
+
+      return endGame('silentSOS');
+    }
+
+    async function routeWithXiaoqing(){
+      await friendOther('我在公司對面的便利商店。\n我先從側門上樓找妳，敏感內容不要打在聊天室裡。');
+
+      const evidenceNames=[];
+      if(state.flags.checkedDevices) evidenceNames.push('登入紀錄');
+      if(state.flags.checkedCharm) evidenceNames.push('吊飾定位器');
+      if(state.flags.checkedAlbum) evidenceNames.push('共享相簿');
+      const evidenceText=evidenceNames.length
+        ? evidenceNames.join('、')
+        : '剛才找到的紀錄';
+
+      friendMine(`我把${evidenceText}整理好了。`);
+      await friendOther('先留著原始檔。等我上樓，我們當面確認。');
+      addSystem('幾分鐘後，小晴從側門進來。你們把手機留在桌上，當面約定暗號。',false,'xiaoqing');
+
+      const realCode=await askSecretInput({
+        placeholder:'輸入你們口頭約定的暗號',
+        buttonText:'記住',
+        maxLength:18,
+        hint:'暗號不會出現在任何聊天室'
+      });
+      state.courage+=1;
+      state.flags.secretCodeSet=true;
+
+      addSystem('小晴離開前只確認了一次暗號，手機裡沒有留下紀錄。',false,'xiaoqing');
+      await friendOther('我回到對街了。之後如果有人用我的帳號叫妳改路線，先問暗號。');
+
+      await other('小晴在對街等妳？',650,{creepy:true});
+      await other('她不進來，是因為她也知道我在這裡嗎？',650,{creepy:true});
+      flashScreen();
+
+      await friendOther('我到 B2 貨梯旁了。\n這裡沒人，妳快過來。',550,{compromised:true});
+
+      const verify=await choose([
+        {id:'askCode',text:'先用語音說出暗號。',delta:{courage:2,evidence:1}},
+        {id:'follow',text:'好，我現在下去。',delta:{appease:1},danger:true},
+        {id:'ignore',text:'不回覆，照原路走向一樓正門。',action:true,delta:{boundary:2,courage:1}},
+        {id:'disgustHack',text:'連朋友的帳號都敢動，你到底還有沒有底線？',delta:{anger:4,courage:2,boundary:2},danger:true}
+      ]);
+
+      if(verify==='follow'){
+        addSystem('電梯停在地下二樓。',true,'xiaoqing');
+        await wait(700);
+        await friendOther('妳在哪？我一直在對街，根本沒有進大樓。',450,{creepy:true});
+        return endGame('wrongDoor');
+      }
+
+      if(verify==='disgustHack'){
+        await other('我沒有偷。',450,{creepy:true});
+        await other('她的密碼太簡單，是她自己不小心。',520,{creepy:true});
+        await other('{name}，妳為什麼永遠只看到我做錯的地方？',580,{creepy:true});
+        state.flags.insultedHack=true;
+      }
+
+      if(verify==='ignore' || verify==='disgustHack'){
+        await other('不要走正門。',500,{creepy:true});
+        await other('我看得到妳往哪裡走。',500,{creepy:true});
+      }else{
+        const fakeCode=realCode==='玻璃海'
+          ? '凌晨三點'
+          : '玻璃海';
+
+        addVoiceMessage(
+          '小晴',
+          `是我。暗號是${fakeCode}。快來地下二樓。`,
+          {duration:'00:07',pitch:.98,rate:.96,hint:'未播放',contact:'xiaoqing'}
+        );
+        await wait(650);
+        addSystem(`她說的是「${fakeCode}」。不是你和小晴當面約定的暗號。`,true,'xiaoqing');
+        state.evidence+=2;
+
+        await other('{name}，只差一點。',600,{creepy:true});
+        await other('{name}，妳為什麼每次都要把事情弄得這麼麻煩？',650,{creepy:true});
+      }
+
+      addVoiceMessage(
+        '彥廷',
+        '{name}，不要再聽小晴的。妳只要回來，我可以當作什麼都沒發生。',
+        {duration:'00:10',pitch:.84,rate:.89,contact:'yenting'}
+      );
+      await wait(500);
+
+      await spamMessages([
+        '{name}',
+        '{name}',
+        '{name}',
+        '{name}',
+        '{name}',
+        '{name}',
+        '回我',
+        '{name}，回我',
+        '不要走',
+        '我很在乎妳',
+        '我只是怕妳出事',
+        '我只是想保護妳',
+        '妳不能突然把我丟下',
+        '妳明明知道我只有妳',
+        Array.from({length:22},()=>'{name}').join(''),
+        Array.from({length:11},()=> '我愛妳').join(''),
+        Array.from({length:16},()=> '不要走').join(''),
+        '我做這些都是因為我太愛妳妳為什麼不能理解',
+        Array.from({length:10},()=> '回我').join(''),
+        '{name}{name}{name}我真的很愛妳沒有妳我什麼都不是妳回來好不好'
+      ],118);
+
+      addVoiceMessage(
+        '彥廷',
+        '不要走。不要走。不要走。{name}，我真的很在乎妳。',
+        {duration:'00:09',pitch:.82,rate:.88,contact:'yenting'}
+      );
+      await wait(550);
+
+      await relentlessCalls({
+        lines:[
+          '{name}，不要走。接電話。',
+          '我很在乎妳。妳為什麼就是不肯相信？',
+          '最後一次。接起來，不然我就去找妳。'
+        ],
+        timeout:5000,
+        maxAttempts:8,
+        pauseEvery:4
+      });
+
+      const exit=await choose([
+        {
+          id:'trackerLift',
+          text: state.flags.checkedCharm
+            ? '把定位器留在上行電梯，自己走消防梯。'
+            : '把包包留在上行電梯，自己走消防梯。',
+          action:true,
+          delta:{courage:3,evidence:2,boundary:2}
+        },
+        {id:'frontDoor',text:'關閉手機，直接從一樓正門離開。',action:true,delta:{courage:2,boundary:1}},
+        {id:'stayRoom',text:'反鎖會議室，等小晴上樓找你。',action:true,danger:true}
+      ]);
+
+      if(exit==='stayRoom') return endGame('quietRoom');
+
+      if(exit==='frontDoor'){
+        addSystem('你沒有再看訊息，穿過一樓大廳走向街上。');
+        return endGame(state.evidence>=8 ? 'protected' : 'vanish');
+      }
+
+      addSystem('定位訊號跟著空電梯往十樓移動。');
+      await other('妳在上樓？',450,{creepy:true});
+      await other('電梯裡為什麼沒有人？',450,{creepy:true});
+      addSystem('你沿著消防梯往下，沒有回頭。');
+
+      return endGame(
+        state.evidence>=9 && state.courage>=7 && state.boundary>=3
+          ? 'free'
+          : 'protected'
+      );
+    }
+
+    async function routeBaitYenting(){
+      await friendOther('我可以幫妳製造一個假訊號。\n妳要讓他聽見腳步聲，還是看到一台移動中的電梯？');
+
+      const decoyType=await choose([
+        {id:'steps',text:'用辦公室音響播放走進會議室的腳步聲。',action:true,flag:'decoySteps'},
+        {id:'elevator',text:'讓定位器搭空電梯往八樓。',action:true,flag:'decoyElevator'},
+        {id:'lights',text:'遠端打開八樓會議室的燈。',action:true,flag:'decoyLights'}
+      ]);
+
+      if(decoyType==='steps'){
+        await friendOther('腳步聲傳給妳了。最後三秒會停在門後。');
+      }else if(decoyType==='elevator'){
+        await friendOther('定位器留在電梯裡。它會在八樓停四十秒。');
+      }else{
+        await friendOther('八樓燈已經亮了。從外面看會像有人剛進去。');
+      }
+
+      addMessage('mine','好，我現在跟你見面。東西放在八樓會議室。',{contact:'yenting'});
+      await waitForChat('yenting');
+      await other('我就知道妳不會真的丟下我。',650,{creepy:true});
+
+      addVoiceMessage(
+        '彥廷',
+        '{name}，不要再躲了。我只是想抱抱妳。',
+        {duration:'00:07',pitch:.91,rate:.93,contact:'yenting'}
+      );
+      await spamMessages([
+        '{name}',
+        '{name}',
+        '我已經到了',
+        '妳在哪一間',
+        '不要再躲了',
+        Array.from({length:14},()=>'{name}').join(''),
+        Array.from({length:7},()=> '我愛妳').join(''),
+        Array.from({length:9},()=> '不要走').join(''),
+        '妳說過不會丟下我妳不回我就是故意傷害我',
+        '我很在乎妳所以妳不能這樣消失',
+        '回我回我回我回我回我'
+      ],135);
+
+      const bait=await choose([
+        {id:'emptyRoom',text:'把定位器留在空會議室，從另一側樓梯離開。',action:true,delta:{courage:3,evidence:1,boundary:2}},
+        {id:'faceHim',text:'走進會議室，當面叫他把所有東西刪掉。',action:true,danger:true},
+        {id:'homeLie',text:'改口說自己已經回家，叫他去住處找你。',delta:{appease:2},danger:true},
+        {id:'finalInsult',text:'你不是放不下，是不能接受我不再受你控制。',delta:{anger:5,courage:2,boundary:2},danger:true}
+      ]);
+
+      if(bait==='faceHim'){
+        await other('門沒有鎖。進來。',500,{creepy:true});
+        return endGame('watched');
+      }
+
+      if(bait==='finalInsult'){
+        await other('可悲？',450,{creepy:true});
+        await other('等妳發現沒有人會像我一樣記得妳，妳就會回來。',620,{creepy:true});
+        await relentlessCalls({
+          lines:[
+            '{name}，把可悲那兩個字收回去。',
+            '接電話。我沒有要吵架。',
+            '妳不接，我就一直打。'
+          ],
+          timeout:4800,
+          maxAttempts:6,
+          pauseEvery:3
+        });
+      }
+
+      if(bait==='homeLie'){
+        await other('妳在說謊。',450,{creepy:true});
+        await other('妳辦公室的燈還亮著。',450,{creepy:true});
+        return endGame('trapped');
+      }
+
+      if(state.flags.decoySteps){
+        addSystem('八樓傳出一段走進會議室的腳步聲。');
+      }else if(state.flags.decoyElevator){
+        addSystem('定位訊號停在八樓，電梯裡沒有人。');
+      }else{
+        addSystem('八樓會議室的燈亮起，門後沒有任何人。');
+      }
+      await other(
+        state.flags.decoySteps ? '我聽到妳了。' : '我看到妳進去了。',
+        500,
+        {creepy:true}
+      );
+      await other('不要再走。',500,{creepy:true});
+      await wait(600);
+      addSystem('八樓的門被推開。你已經走到三樓。');
+      await other('……妳騙我。',600,{creepy:true});
+      return endGame('baited');
+    }
+
+    async function routeGoOffline(){
+      await friendOther('接下來十分鐘，我不會傳任何訊息。\n妳看到我的名字也不要回。');
+      friendMine('十分鐘後，我直接走到對街找妳。');
+      await friendOther('好。我只會站在便利商店最亮的那扇窗前。');
+
+      addSystem('你登出所有帳號，關閉定位，拔出 SIM 卡。',false,'xiaoqing');
+      addSystem('已下載的最後一段語音仍留在手機裡。',false,'xiaoqing');
+
+      addVoiceMessage(
+        '彥廷',
+        '{name}，我知道妳還在公司。不要關機。',
+        {duration:'00:06',pitch:.9,rate:.93,contact:'yenting'}
+      );
+
+      await waitForChat('yenting');
+      await wait(700);
+      addSystem('辦公桌上的室內電話響了。',true);
+      await wait(550);
+      addSystem('電話停止。走廊另一端的電話接著響起。',true);
+      flashScreen();
+
+      const offlineExit=await choose([
+        {id:'leaveDevices',text:'把手機和定位器留在桌上，從消防梯離開。',action:true,delta:{courage:3,boundary:3}},
+        {id:'usualWay',text:'帶著手機，照平常路線回家。',action:true,danger:true},
+        {id:'hide',text:'躲進會議室，等外面完全安靜。',action:true,danger:true}
+      ]);
+
+      if(offlineExit==='usualWay'){
+        addSystem('走出大樓時，手機在沒有 SIM 卡的狀態下亮起。',true);
+        await other('妳還是走這條路。',450,{creepy:true});
+        return endGame('trapped');
+      }
+
+      if(offlineExit==='hide'){
+        return endGame('quietRoom');
+      }
+
+      addSystem('手機留在辦公桌上，螢幕一次又一次亮起。');
+      addSystem('你從消防梯離開。九分鐘內，沒有任何帳號知道你的位置。');
+      return endGame('offline');
+    }
+
+    async function play(){
+      state.ended=false;
+
+      await timeJump('三週前');
+      await other('{name}，面試結束了嗎？\n我訂到妳說很想吃的那家店了。');
+
+      const intro=await choose([
+        {id:'warm',text:'你居然還記得！我剛結束～',delta:{appease:1}},
+        {id:'busy',text:'剛結束，但今天有點累。',delta:{boundary:1}},
+        {id:'calendar',text:'你怎麼知道我今天面試？',delta:{suspicion:1}},
+        {id:'disgustCalendar',text:'別把偷看行事曆說成驚喜，你就是控制狂。',delta:{anger:2,courage:1,boundary:2},danger:true}
+      ]);
+
+      if(intro==='calendar'){
+        await other('妳的共享行事曆還開著啊。\n上次幫妳排旅遊行程的時候看到的。');
+        await other('別緊張，我只是想替妳準備驚喜。');
+      }else if(intro==='disgustCalendar'){
+        await other('變態？\n我只是記得妳自己忘記關掉的東西。',580,{creepy:true});
+        await other('{name}，妳現在連我關心妳都覺得噁心嗎？',600,{creepy:true});
+      }else if(intro==='busy'){
+        await other('那我去接妳。\n妳累的時候最容易忘記看車。');
+      }else{
+        await other('{name}，妳說過的事情，我都記得。');
+      }
+
+      await other('外面要下雨了，灰色那把傘在妳辦公室抽屜第二格。');
+      addSystem('你想起來，那把傘確實是他上次替你收進去的。');
+
+      await timeJump('一週前・12:36');
+      await other('中午那家咖哩很辣吧？');
+
+      const lunch=await choose([
+        {id:'story',text:'你看到我的限時動態？',delta:{suspicion:1}},
+        {id:'coworker',text:'翔宇跟你說的？',delta:{suspicion:1}},
+        {id:'normal',text:'對啊，辣到不行 😂',delta:{appease:1}},
+        {id:'disgustLunch',text:'正常人不會查遍我身邊的人，你真的很有事。',delta:{anger:2,courage:1,boundary:1},danger:true}
+      ]);
+
+      if(lunch==='story'){
+        await other('妳沒有發限動。\n是翔宇發的。');
+      }else if(lunch==='coworker'){
+        await other('沒有，我只是剛好看到他帳號。');
+      }else if(lunch==='disgustLunch'){
+        await other('我只是看看誰每天黏著妳。',520,{creepy:true});
+        await other('妳如果沒有事情瞞我，為什麼這麼生氣？',580,{creepy:true});
+      }else{
+        await other('下次不要點那麼辣。\n妳胃痛的時候晚上會睡不好。');
+      }
+
+      await other('{name}，妳怎麼又跟翔宇坐一起？');
+
+      const jealousy=await choose([
+        {id:'boundary',text:'他只是同事，你不要一直查我身邊的人。',delta:{boundary:2,courage:1}},
+        {id:'explain',text:'剛好大家一起吃飯而已。',delta:{appease:1}},
+        {id:'tease',text:'你在吃醋喔？',delta:{appease:1}},
+        {id:'disgustJealous',text:'你不是吃醋，是把我當成你的東西。',delta:{anger:2,courage:1,boundary:2},danger:true}
+      ]);
+
+      if(jealousy==='boundary'){
+        await other('我不是查。\n我只是想知道誰會靠妳太近。');
+        addSystem('彥廷收回了一則訊息。',true);
+        await wait(450);
+        await other('算了，妳不喜歡我就不問。');
+      }else if(jealousy==='explain'){
+        await other('我知道。\n但他看妳的方式不是同事。');
+      }else if(jealousy==='disgustJealous'){
+        await other('妳說我噁心？\n{name}，妳以前不會這樣跟我說話。',600,{creepy:true});
+        await callBarrage({
+          count:1,
+          lines:['{name}，把剛剛那句話再說一次。'],
+          timeout:6200
+        });
+      }else{
+        await other('當然會啊。\n因為妳是我的。');
+      }
+
+      await friendOther('欸，彥廷剛剛突然追蹤我。\n還把我三年前的貼文全部按過一遍。');
+
+      const earlyFriend=await choose([
+        {id:'tellFriend',text:'他最近一直問我跟誰在一起。',delta:{evidence:1,boundary:1}},
+        {id:'screenshotFriend',text:'妳先截圖，不要回他。',delta:{evidence:2,courage:1}},
+        {id:'dismissFriend',text:'可能只是他亂滑到，先別理。',delta:{appease:1}}
+      ]);
+
+      if(earlyFriend==='tellFriend'){
+        await friendOther('這不是吃醋而已。\n妳先把他知道、但妳沒說過的事情記下來。');
+      }else if(earlyFriend==='screenshotFriend'){
+        await friendOther('好，我存好了。\n他剛剛又取消追蹤，像是在確認我有沒有發現。');
+      }else{
+        await friendOther('好。但如果他再問我的事，妳要跟我說。');
+      }
+
+      await other('妳剛剛在跟小晴聊我？',650,{creepy:true});
+
+      const caughtChat=await choose([
+        {id:'denyChat',text:'沒有，只是在聊工作。',delta:{appease:1}},
+        {id:'boundaryChat',text:'我跟誰聊天不需要向你報告。',delta:{boundary:2,courage:1}},
+        {id:'disgustChat',text:'對，我在告訴她你怎麼把監視包裝成關心。',delta:{anger:4,courage:2,boundary:2},danger:true}
+      ]);
+
+      if(caughtChat==='denyChat'){
+        await other('那把妳們剛剛的對話截圖給我。');
+      }else if(caughtChat==='boundaryChat'){
+        await other('我們之間什麼時候需要分妳的、我的？');
+      }else{
+        await other('妳現在連外人都要一起拉進來羞辱我？',520,{creepy:true});
+        await other('{name}，妳最好想清楚，是誰一直在照顧妳。',580,{creepy:true});
+      }
+
+      addVoiceMessage(
+        '彥廷',
+        '{name}，妳不要讓我一直猜。只要告訴我妳在哪裡，我就不會這麼擔心。',
+        {duration:'00:09',creepy:false,pitch:.94,rate:.96,contact:'yenting'}
+      );
+      await wait(550);
+
+      await timeJump('今天・21:47');
+      await other('{name}，到家了嗎？');
+
+      const arrived=await choose([
+        {id:'sweet',text:'到了～你呢？',delta:{appease:1}},
+        {id:'short',text:'到了。',delta:{boundary:1}},
+        {id:'why',text:'你怎麼知道我剛到？',delta:{suspicion:1,courage:1}},
+        {id:'disgustArrival',text:'少演深情了，你這叫跟蹤，不叫在乎。',delta:{anger:3,courage:2,boundary:2},danger:true},
+        {id:'mockConcern',text:'你最噁心的地方，就是每次越界都說自己只是擔心。',delta:{anger:4,courage:2,boundary:2},danger:true}
+      ]);
+
+      if(arrived==='why'){
+        await other('妳不是每天都差不多這個時間？\n我猜的。');
+      }else if(arrived==='disgustArrival'){
+        await other('跟蹤？',450,{creepy:true});
+        await other('{name}，妳知道有人每天擔心妳，妳還用這種話傷他。',620,{creepy:true});
+        state.flags.calledStalker=true;
+      }else if(arrived==='mockConcern'){
+        await other('所以我擔心妳也有錯？',450,{creepy:true});
+        await other('妳只是想找理由把我說成壞人。',560,{creepy:true});
+        state.flags.mockedConcern=true;
+      }else{
+        await other('嗯，我也剛到。');
+      }
+
+      await other('{name}，妳今天是不是繞去便利商店？');
+
+      const store=await choose([
+        {id:'ask',text:'你怎麼知道？',delta:{suspicion:1,evidence:1}},
+        {id:'joke',text:'你裝監視器喔 😂',delta:{suspicion:1}},
+        {id:'ignore',text:'嗯，買了點東西。',delta:{appease:1}},
+        {id:'disgustStore',text:'你每句關心都像監視報告，聽了只想吐。',delta:{anger:3,courage:1,boundary:2},danger:true}
+      ]);
+
+      if(store==='joke'){
+        await other('哈哈，妳家那個角度裝監視器也拍不到吧。');
+        flashScreen();
+        addSystem('你從沒告訴過他房間窗戶的角度。',true);
+        state.evidence++;
+      }else if(store==='ask'){
+        await other('之前不是有開定位共享嗎？\n可能還沒關乾淨。');
+        addSystem('你記得自己兩個月前就已關閉位置共享。',true);
+      }else if(store==='disgustStore'){
+        await other('又是變態。',450,{creepy:true});
+        await other('妳現在是故意找最難聽的字來刺我嗎？',560,{creepy:true});
+        state.flags.insultedAtHome=true;
+      }else{
+        await other('草莓牛奶別喝太快，妳剛剛已經咳了兩次。');
+        addSystem('你進門後沒有開過視訊或通話。',true);
+        state.evidence++;
+      }
+
+      await other('對了，白色內搭很好看。',750,{creepy:true});
+      flashScreen();
+
+      addVoiceMessage(
+        '彥廷',
+        '{name}，外套不用拉那麼高。我想看看妳。',
+        {duration:'00:06',pitch:.88,rate:.92,contact:'yenting'}
+      );
+      await wait(500);
+
+      const clothes=await choose([
+        {id:'deny',text:'我的外套整天都拉著，你怎麼看到的？',delta:{evidence:1,courage:1,boundary:1}},
+        {id:'where',text:'你現在到底在哪裡？',delta:{suspicion:2,courage:1}},
+        {id:'laugh',text:'你又記錯了吧。',delta:{appease:1}},
+        {id:'disgustClothes',text:'偷看還講得理直氣壯，你真的毫無羞恥心。',delta:{anger:3,courage:2,boundary:1},danger:true}
+      ]);
+
+      if(clothes==='deny'){
+        await other('早上妳在玄關綁鞋帶的時候有露出來。');
+        addSystem('早上七點，你確定走廊上沒有其他人。',true);
+      }else if(clothes==='where'){
+        await other('在家。\n妳幹嘛突然這麼緊張？');
+      }else if(clothes==='disgustClothes'){
+        await other('我只是看我女朋友，哪裡噁心？',520,{creepy:true});
+        await other('{name}，不要用那種字形容我。',520,{creepy:true});
+        await callBarrage({
+          count:2,
+          lines:[
+            '{name}，接電話。我想聽妳親口說。',
+            '妳敢在訊息裡罵我，為什麼不敢接電話？'
+          ],
+          timeout:5800
+        });
+      }else{
+        await other('{name}，我不會記錯妳的事情。');
+      }
+
+      await other('我上次放在妳家的充電線還在嗎？');
+
+      const keyTalk=await choose([
+        {id:'noVisit',text:'你最近根本沒來過我家。',delta:{evidence:1,boundary:1}},
+        {id:'check',text:'我找一下。',delta:{appease:1}},
+        {id:'key',text:'你是不是還留著我家的鑰匙？',delta:{suspicion:2,courage:1}},
+        {id:'disgustKey',text:'你憑什麼把我家當你的地盤？滾遠一點。',delta:{anger:3,courage:2,boundary:2},danger:true}
+      ]);
+
+      if(keyTalk==='noVisit'){
+        await other('可能是更早以前放的。\n就在床頭櫃後面。');
+        addSystem('你從未讓他進過臥室。',true);
+        state.evidence++;
+      }else if(keyTalk==='check'){
+        await other('不用找了。\n床頭櫃後面沒有。');
+        addSystem('他在你查看以前就知道結果。',true);
+        state.evidence++;
+      }else if(keyTalk==='disgustKey'){
+        await other('噁男？',500,{creepy:true});
+        await other('{name}，妳最好不要等我真的站在妳家門口時，才說不是那個意思。',650,{creepy:true});
+        state.flags.threatenedDoor=true;
+      }else{
+        await other('不是放在藍色雨傘筒下面嗎？');
+        addSystem('備用鑰匙的位置只有你知道。',true);
+        state.evidence++;
+      }
+
+      addSystem('系統通知：偵測到未知定位配件正跟著你移動。',true);
+      beep('horror');
+      flashScreen();
+
+      addVoiceMessage(
+        '彥廷',
+        '{name}，不要亂拆我送妳的東西。那只是讓我確定妳平安。',
+        {duration:'00:08',pitch:.86,rate:.91,contact:'yenting'}
+      );
+      await wait(550);
+
+      const firstInvestigation=await choose([
+        {id:'inspect',text:'先不要質問，檢查手機與隨身物品。',action:true,delta:{courage:1,evidence:1}},
+        {id:'confront',text:'你是不是在我身上放了定位器？',delta:{courage:2,suspicion:1}},
+        {id:'dismiss',text:'可能只是鄰居的裝置。',action:true,delta:{appease:2}},
+        {id:'disgustTracker',text:'裝定位器還說是保護，你連自己有多可怕都不知道。',delta:{anger:4,courage:2,boundary:2},danger:true},
+        {id:'callOutControl',text:'你不是怕我出事，你只是怕我離開你的視線。',delta:{anger:4,courage:2,boundary:3},danger:true}
+      ]);
+
+      if(firstInvestigation==='dismiss'){
+        await other('什麼裝置？',650,{creepy:true});
+        addSystem('你沒有把系統通知告訴他。',true);
+        state.evidence++;
+      }else if(firstInvestigation==='confront'){
+        await other('妳在說什麼？\n我送妳的東西都是怕妳弄丟。');
+        await other('把包包吊飾拆下來看看啊。',650,{creepy:true});
+      }else if(firstInvestigation==='disgustTracker' || firstInvestigation==='callOutControl'){
+        await other(
+          firstInvestigation==='callOutControl'
+            ? '妳離開我的視線，才是真的危險。'
+            : '不要再用那種字形容我。',
+          480,
+          {creepy:true}
+        );
+        await other(
+          firstInvestigation==='callOutControl'
+            ? '{name}，妳根本不知道外面的人會怎麼對妳。只有我是真的在保護妳。'
+            : '我只是想知道妳有沒有平安到家。妳為什麼一定要把我說得那麼難聽？',
+          620,
+          {creepy:true}
+        );
+        state.flags.rageCalls=true;
+        await relentlessCalls({
+          lines:[
+            '{name}，接電話。',
+            '妳不是很會罵嗎？接起來說。',
+            '不要逼我親自去找妳。'
+          ],
+          timeout:5200,
+          maxAttempts:7,
+          pauseEvery:4
+        });
+      }else{
+        await other('{name}，怎麼突然不回？\n妳在翻包包嗎？',650,{creepy:true});
+      }
+
+      await investigatePhone();
+
+      if(state.flags.checkedAlbum && state.flags.checkedDevices){
+        addSystem('陌生裝置曾下載整個隱藏相簿。',true);
+      }
+
+      await friendOther('妳目前找到什麼？先只傳一樣最明確的證據。');
+
+      const shareOptions=[];
+
+      if(state.flags.checkedCharm){
+        shareOptions.push({
+          id:'shareCharm',
+          text:'我拆開他送的吊飾，裡面有一個正在發送訊號的定位器。',
+          delta:{evidence:2,courage:1},
+          flag:'sharedCharm'
+        });
+      }
+
+      if(state.flags.checkedDevices){
+        shareOptions.push({
+          id:'shareDevices',
+          text:'我的帳號有一台「YENTING-MBP」還在線上，我把登入截圖傳妳。',
+          delta:{evidence:2,courage:1},
+          flag:'sharedDevices'
+        });
+      }
+
+      if(state.flags.checkedAlbum){
+        shareOptions.push({
+          id:'shareAlbum',
+          text:'我找到一個在我們認識以前就建立的共享相簿。',
+          delta:{evidence:2,suspicion:1},
+          flag:'sharedAlbum'
+        });
+      }
+
+      shareOptions.push({
+        id:'shareNothing',
+        text:'我先不傳檔案。妳只要告訴我妳現在安全。',
+        delta:{boundary:1}
+      });
+
+      const sharedEvidence=await choose(shareOptions);
+
+      if(sharedEvidence==='shareCharm'){
+        await friendOther('照片收到了。接縫和一般吊飾不一樣。\n妳先不要把它放回包包。');
+      }else if(sharedEvidence==='shareDevices'){
+        await friendOther('登入截圖收到了。那台電腦兩分鐘前還在線上。\n我先替妳留一份。');
+      }else if(sharedEvidence==='shareAlbum'){
+        await friendOther('相簿建立日期收到了。\n那時妳甚至還沒跟我提過他。');
+      }else{
+        await friendOther('我現在安全。妳不用把細節寫在這裡。\n先把原始紀錄留好。');
+      }
+
+      const friendHelp=await choose([
+        {id:'backupShared',text:'妳幫我把剛才那份資料另外存一份。',delta:{evidence:1,courage:1}},
+        {id:'stayChat',text:'先不要離開聊天室，陪我把剩下的東西檢查完。',delta:{courage:1,boundary:1}},
+        {id:'keepQuiet',text:'先別回他，我想確認他到底能看到多少。',delta:{suspicion:1}}
+      ]);
+
+      if(friendHelp==='backupShared'){
+        await friendOther('存好了。原始時間和檔名都留著。');
+      }else if(friendHelp==='stayChat'){
+        await friendOther('好。我不會催妳，找到什麼再告訴我。');
+      }else{
+        await friendOther('可以。但不要故意透露妳的位置，也不要單獨赴約。');
+      }
+
+      await friendOther('先做一件事：把手機的靜音求助打開。真的需要時，不要在聊天室打「報警」，直接用側鍵送出位置。');
+      state.flags.silentSOSReady=true;
+
+      const sentEvidence=
+        state.flags.sharedCharm ||
+        state.flags.sharedDevices ||
+        state.flags.sharedAlbum;
+
+      await other(
+        sentEvidence
+          ? '{name}，妳把剛才找到的東西傳給小晴了？'
+          : '{name}，妳跟小晴說了什麼？',
+        650,
+        {creepy:true}
+      );
+      flashScreen();
+
+      addVoiceMessage(
+        '彥廷',
+        '{name}，不要把我們的事情給小晴看。她根本不了解我們。',
+        {duration:'00:08',pitch:.87,rate:.92,contact:'yenting'}
+      );
+      await wait(500);
+
+      await friendOther('他剛剛私訊我一張妳家樓下的照片。\n還問：「她是不是又把窗簾拉上了？」',550,{creepy:true});
+
+      const xiaoqingPhoto=await choose([
+        {id:'savePhoto',text:'先截圖，把原始傳送時間也留下來。',delta:{evidence:2,courage:1}},
+        {id:'falseInfo',text:'回他我今晚住妳家，看他會不會相信。',delta:{courage:1},flag:'xiaoqingDecoy'},
+        {id:'blockNow',text:'直接封鎖他，不要再讓他接近妳。',delta:{boundary:2}}
+      ]);
+
+      if(xiaoqingPhoto==='savePhoto'){
+        await friendOther('存好了。照片是兩分鐘前傳的。\n但我剛剛看過，妳家樓下沒有人。');
+      }else if(xiaoqingPhoto==='falseInfo'){
+        await friendOther('我回了。\n他只說：「她不在妳家。」');
+        state.evidence+=1;
+      }else{
+        await friendOther('封鎖了。\n他立刻換另一個帳號追蹤我。');
+        state.evidence+=1;
+      }
+
+      await friendOther('還有一件事。\n他第一次見我時，叫出我只有家人才知道的綽號。');
+
+      const oldMemory=await choose([
+        {id:'neverSaid',text:'我從來沒跟他提過那個綽號。',delta:{evidence:2,suspicion:1}},
+        {id:'askWhen',text:'妳第一次見他是什麼時候？',delta:{suspicion:1}},
+        {id:'protectFriend',text:'妳今晚不要一個人回家。',delta:{boundary:1,courage:1}}
+      ]);
+
+      if(oldMemory==='neverSaid'){
+        await friendOther('那他在認識妳以前，就已經看過我的帳號了。');
+      }else if(oldMemory==='askWhen'){
+        if(state.flags.checkedAlbum){
+          await friendOther('四個月前。\n就是那個相簿建立的同一週。');
+          state.evidence+=1;
+        }else{
+          await friendOther('四個月前。\n那時妳還跟我說，根本不認識這個人。');
+          state.evidence+=1;
+        }
+      }else{
+        await friendOther('好。我會待在人多的地方。\n妳也不要照平常路線走。');
+      }
+
+      await other(
+        state.flags.xiaoqingDecoy
+          ? '{name}，小晴為什麼說妳今晚住她家？'
+          : '{name}，小晴跟妳說了什麼？',
+        600,
+        {creepy:true}
+      );
+
+      const friendQuestion=await choose([
+        {id:'nothingFriend',text:'沒什麼。',delta:{appease:1}},
+        {id:'stopHarassing',text:'她叫你不要再騷擾我們。',delta:{boundary:2,courage:1}},
+        {id:'disgustFriend',text:'她也看得出來，你根本不是愛我，是想佔有我。',delta:{anger:4,courage:2,boundary:2},danger:true}
+      ]);
+
+      if(friendQuestion==='nothingFriend'){
+        await other('妳說謊的時候，句子都會變很短。',520,{creepy:true});
+      }else if(friendQuestion==='stopHarassing'){
+        await other('所以現在變成「我們」了？');
+      }else{
+        await other('跟蹤狂？',450,{creepy:true});
+        await other('她根本不知道我為妳做過多少事。',540,{creepy:true});
+        state.flags.insultedWithFriend=true;
+      }
+
+      if(state.flags.checkedAlbum && state.suspicion>=5){
+        const albumChoice=await choose([
+          {id:'continue',text:'繼續往相簿最早的日期查看。',action:true,delta:{evidence:1},danger:true},
+          {id:'backup',text:'停止查看，立刻備份相簿與登入紀錄。',action:true,delta:{evidence:2,courage:1}},
+          {id:'delete',text:'太噁心了，直接刪除整個相簿。',action:true,delta:{appease:1}},
+          {id:'disgustAlbum',text:'把偷拍照叫回憶？你根本不懂什麼叫尊重。',delta:{anger:4,courage:2,boundary:2},danger:true}
+        ]);
+
+        if(albumChoice==='continue' && state.courage<3){
+          await other('妳看到公車站那張了嗎？',650,{creepy:true});
+          return endGame('archive');
+        }
+        if(albumChoice==='backup'){
+          addSystem('資料已備份至另一個帳號。');
+        }
+        if(albumChoice==='delete'){
+          await other('為什麼要刪掉我們的回憶？',700,{creepy:true});
+        }
+        if(albumChoice==='disgustAlbum'){
+          await other('那些不是偷拍。',480,{creepy:true});
+          await other('那是我比任何人都早看見妳的證明。',620,{creepy:true});
+          if(!state.flags.rageCalls){
+            await callBarrage({
+              count:2,
+              lines:[
+                '{name}，妳說我有病？',
+                '妳再說一次。不要掛電話。'
+              ],
+              timeout:5800
+            });
+          }
+        }
+      }
+
+      const quickHangupCount=state.flags.quickHangups || 0;
+      const homeDanger=
+        state.anger>=11 ||
+        quickHangupCount>=2 ||
+        (state.flags.threatenedHome && state.anger>=8);
+
+      if(homeDanger){
+        return highAngerHomeMission();
+      }
+
+      await timeJump('隔天・20:52');
+      await friendOther('我到公司對面的便利商店了。\n妳先不要下樓。');
+      friendMine('彥廷好像知道我還在公司。');
+      await friendOther('把妳找到的東西都留著。先不要讓他知道妳要怎麼走。');
+
+      await other('{name}，今天怎麼這麼晚還沒下班？',650);
+      await other('{name}，小晴已經到對街了吧。',650,{creepy:true});
+      flashScreen();
+      addSystem('你沒有告訴過他小晴的位置。',true,'yenting');
+      state.evidence+=2;
+
+      await friendOther('妳決定怎麼做，我照妳的方式配合。');
+
+      const route=await choose([
+        {id:'xiaoqingRoute',text:'把證據交給小晴，約定暗號後分開行動。',action:true,delta:{evidence:2,courage:1,boundary:1}},
+        {id:'baitRoute',text:'假裝答應見面，把彥廷引到錯誤位置。',action:true,delta:{courage:2,boundary:1}},
+        {id:'offlineRoute',text:'關閉所有帳號與定位，自己悄悄離開。',action:true,delta:{courage:1,boundary:2}}
+      ]);
+
+      if(route==='xiaoqingRoute') return routeWithXiaoqing();
+      if(route==='baitRoute') return routeBaitYenting();
+      return routeGoOffline();
+    }
+
+
+    async function endingMessage(contact,text,{creepy=false,delay=650}={}){
+      addMessage('other',interpolate(text),{creepy,contact});
+      if(activeContact!==contact){
+        await waitForChat(contact);
+      }
+      await wait(delay);
+    }
+
+    async function playEndingSequence(key){
+      if(key==='silentSOS'){
+        await endingMessage('xiaoqing','{name}，先不要開門。我就在樓下，等門外完全安靜再出來。');
+        addMessage('mine','我聽不到他的腳步了。',{contact:'xiaoqing'});
+        await endingMessage('xiaoqing','好。門外的錄音和來電紀錄我都備份了。');
+        await timeJump('九天後・20:31');
+        addSystem('陌生帳號追蹤了你。帳號名稱只有一個句點。',true,'yenting');
+        await waitForChat('yenting');
+        await endingMessage('yenting','那天妳報警的時候，聲音有發抖。',{creepy:true});
+        return;
+      }
+
+      if(key==='detectedSOS'){
+        await endingMessage('xiaoqing','不要再打字。我已經在路上。',{creepy:true});
+        await endingMessage('yenting','她來不及。',{creepy:true});
+        await timeJump('兩週後・03:12');
+        addSystem('你的帳號刪除了所有與小晴的對話。',true,'xiaoqing');
+        return;
+      }
+
+      if(key==='doorBreach'){
+        await endingMessage('xiaoqing','{name}？妳還在線上嗎？',{creepy:true});
+        await endingMessage('yenting','不要一直找她。她現在需要休息。',{creepy:true});
+        await timeJump('一個月後・18:06');
+        addSystem('彥廷上傳了一張新照片。背景是你家的窗簾。',true,'yenting');
+        return;
+      }
+
+      if(key==='free'){
+        await endingMessage('xiaoqing','{name}，我看到妳走出來了。先往便利商店走，不要停。');
+        addMessage('mine','我到了。',{contact:'xiaoqing'});
+        await endingMessage('xiaoqing','好。定位訊號還在十樓，他沒有跟著妳下來。');
+        await timeJump('十二天後・22:16');
+        await endingMessage('xiaoqing','有個空白帳號連續看了我十二天限動。只有妳出現在畫面時，它才會看完。',{creepy:true});
+        addSystem('陌生帳號追蹤了你。帳號名稱是你的生日。',true,'yenting');
+        await waitForChat('yenting');
+        await endingMessage('yenting','新髮型很好看。',{creepy:true});
+        return;
+      }
+
+      if(key==='protected'){
+        await endingMessage('xiaoqing','我看到妳從正門出來了。別往回看，我就在斑馬線另一側。');
+        addMessage('mine','我看到妳了。',{contact:'xiaoqing'});
+        await endingMessage('xiaoqing','先過來。其他事情明天再處理。');
+        await timeJump('三週後・18:37');
+        await endingMessage('xiaoqing','我剛剛在咖啡廳看到彥廷。對面坐著一個女生。');
+        await endingMessage('xiaoqing','他正在問她每天幾點下班。',{creepy:true});
+        addSystem('一個剛建立的小帳查看了你的限時動態。',true,'yenting');
+        return;
+      }
+
+      if(key==='baited'){
+        await endingMessage('xiaoqing','妳已經到三樓了嗎？八樓的門剛剛被推開。');
+        addMessage('mine','我正在往側門走。',{contact:'xiaoqing'});
+        await endingMessage('xiaoqing','我在外面等妳。不要再回他的訊息。');
+        await timeJump('五天後・01:08');
+        addSystem('陌生帳號發布了一則限時動態。',true,'yenting');
+        await waitForChat('yenting');
+        await endingMessage('yenting','有些人會利用別人的真心，然後把自己說成受害者。',{creepy:true});
+        await endingMessage('xiaoqing','他把妳罵他的截圖裁掉前面，只留下最後一句。',{creepy:true});
+        return;
+      }
+
+      if(key==='offline'){
+        await endingMessage('xiaoqing','十分鐘到了。妳看到便利商店最亮的那扇窗了嗎？');
+        addMessage('mine','看到了。',{contact:'xiaoqing'});
+        await endingMessage('xiaoqing','直接走過來。不要回頭，也不要重新開機。');
+        await timeJump('兩週後・23:02');
+        addSystem('新手機收到一段 00:02 的空白語音。',true,'yenting');
+        await waitForChat('yenting');
+        await endingMessage('yenting','妳換手機之後，比以前更難找。',{creepy:true});
+        return;
+      }
+
+      if(key==='wrongDoor'){
+        await endingMessage('xiaoqing','{name}，妳在哪裡？我一直在對街。',{creepy:true});
+        await endingMessage('yenting','不要回她。她又在破壞我們。',{creepy:true});
+        await timeJump('兩個月後・14:20');
+        addSystem('彥廷更新了大頭貼。照片裡，他摟著另一個女生。',true,'yenting');
+        await endingMessage('yenting','她不像妳，她很聽話。',{creepy:true});
+        return;
+      }
+
+      if(key==='quietRoom'){
+        await endingMessage('yenting','{name}，不要出聲。',{creepy:true});
+        await endingMessage('yenting','我聽得到妳在呼吸。',{creepy:true});
+        await timeJump('三週後・00:14');
+        addSystem('你的舊帳號仍顯示每天上線。',true,'yenting');
+        await endingMessage('xiaoqing','我試著登入妳的帳號，但密碼被換掉了。',{creepy:true});
+        return;
+      }
+
+      if(key==='watched'){
+        await endingMessage('yenting','{name}，轉身。',{creepy:true});
+        await endingMessage('xiaoqing','妳不要去見他。回我。',{creepy:true});
+        await timeJump('一個月後・19:46');
+        addSystem('彥廷發布了一張牽手照。只拍到另一個人的手腕。',true,'yenting');
+        await endingMessage('yenting','她也喜歡白色。',{creepy:true});
+        return;
+      }
+
+      if(key==='trapped'){
+        await endingMessage('yenting','{name}，開門。',{creepy:true});
+        await endingMessage('yenting','我只是想把妳抱回來。',{creepy:true});
+        await timeJump('十天後・21:47');
+        addSystem('你的帳號取消追蹤了小晴。',true,'xiaoqing');
+        await endingMessage('xiaoqing','{name}，如果妳看到這則訊息，請只回我以前的綽號。',{creepy:true});
+        return;
+      }
+
+      if(key==='vanish'){
+        await timeJump('三天後・10:08');
+        await endingMessage('xiaoqing','公司櫃台有一束花，沒有署名。妳先別過來。',{creepy:true});
+        await endingMessage('yenting','{name}，換帳號也要告訴我。',{creepy:true});
+        await timeJump('兩週後・02:11');
+        addSystem('三個空白小帳同時追蹤了你。',true,'yenting');
+        return;
+      }
+
+      if(key==='gaslit'){
+        await timeJump('兩週後・23:41');
+        await endingMessage('yenting','{name}，今天怎麼比平常晚七分鐘關燈？',{creepy:true});
+        await timeJump('一個月後・17:30');
+        await endingMessage('xiaoqing','他最近開始接送一個新同事。每次都說只是擔心她一個人回家。',{creepy:true});
+        return;
+      }
+
+      if(key==='archive'){
+        await endingMessage('yenting','{name}，妳終於看到第一張了。',{creepy:true});
+        await endingMessage('yenting','那時候我們還不認識，但我已經很愛妳了。',{creepy:true});
+        await timeJump('四個月後・12:09');
+        addSystem('共享相簿新增了一個資料夾。',true,'yenting');
+        await endingMessage('yenting','這次她不會像妳一樣，把我想得那麼壞。',{creepy:true});
+      }
+    }
+
+
+
+    function endingAftermath(key){
+      const resentful=state.anger>=5;
+      const furious=state.anger>=10;
+      const explosive=state.anger>=15;
+      const quickHangups=state.flags.quickHangups || 0;
+
+      const base={
+        free:'\n\n你離開了他，但他沒有真正消失。你學會不再把陌生帳號、巧合與過度關心當成無害的小事。',
+        protected:'\n\n他沒有再用原本的帳號聯絡你。這並不等於他放棄，只代表他換了一個你還認不出的名字。',
+        baited:'\n\n他沒有承認自己被你甩掉。他開始告訴別人，是你利用了他的感情。幾週後，他又對另一個人說：「我只是比別人更在乎妳。」',
+        offline:'\n\n你成功讓自己消失了九分鐘。之後每一次新帳號、陌生觀看紀錄與空白語音，都提醒你：消失不是終點，而是重新建立界線的開始。',
+        watched:'\n\n後來，他很少再提起你。不是因為放下，而是因為有了新的照片、新的行程與新的名字需要記住。',
+        trapped:'\n\n你的帳號仍會上線，回覆也越來越像他的語氣。小晴偶爾收到一句「我很好」，但再也沒有收到只有你們知道的暗號。',
+        wrongDoor:'\n\n他很快公開了新的關係。每張照片都像在證明你才是問題；只有你知道，那些溫柔的開場白曾經一字不差地對你說過。',
+        quietRoom:'\n\n從那晚之後，你的帳號沒有再主動聯絡任何人，卻每天固定查看小晴的限時動態。',
+        vanish:'\n\n你避開了那一晚，卻開始在每個陌生帳號裡尋找他的影子。最可怕的不是他有沒有看，而是你再也無法確定。',
+        gaslit:'\n\n他把注意力分給新的目標後，反而更像一個體貼的人。只有你知道，那些關心會如何慢慢變成規定。',
+        archive:'\n\n相簿沒有停止增加。你只是從最新的資料夾，變成上一個被整理好的名字。',
+        silentSOS:'\n\n求救成功不代表他立刻消失。門外錄音、未接來電與小帳觀看紀錄，成了你第一次能完整留下的證據。',
+        detectedSOS:'\n\n他最擅長的不是阻止你求救，而是讓你在下一次需要求救時，先懷疑自己會不會又做錯。',
+        doorBreach:'\n\n他後來對所有人說，那晚只是擔心你情緒不穩。門鎖、未接來電與被中斷的求救電話，則被他稱作一場誤會。'
+      };
+
+      const resentfulText=resentful
+        ? '\n\n他記得你罵過他的每一個字。即使換了帳號，那些字仍會被他一遍遍提起，像是所有越界行為都能因此被合理化。'
+        : '';
+
+      const rageText=furious
+        ? '\n\n你曾經罵他的那些訊息被截圖、裁切、重新排列。他在小帳裡說自己被背叛、被羞辱，卻從不提定位器、偷拍照與那些無止盡的來電。'
+        : '';
+
+      const explosiveText=explosive
+        ? '\n\n他不再滿足於隔著螢幕監視。有人在你住處附近看見他，有時只是站著，有時拿著一袋你以前喜歡的東西，像是在等一扇終究會打開的門。'
+        : '';
+
+      const hangupText=quickHangups>=2
+        ? '\n\n你立刻掛掉的那幾通電話，成了他最常提起的理由：「是她先不肯聽我說。」'
+        : '';
+
+      return (base[key] || '') + resentfulText + rageText + explosiveText + hangupText;
+    }
+
+    async function endGame(key){
+      state.ended=true;
+      choiceArea.classList.add('hidden');
+      choicesBox.innerHTML='';
+
+      await playEndingSequence(key);
+
+      const data=endings[key];
+      endingCard.className=`card ending-card ${data.tone}`;
+      endingTitle.textContent=data.title;
+      endingText.textContent=interpolate(data.text + endingAftermath(key));
+      endingText.scrollTop=0;
+      await wait(650);
+      endingOverlay.classList.remove('hidden');
+      requestAnimationFrame(()=>{endingText.scrollTop=0;});
+    }
+
+    function resetGame(){
+      state.name='';
+      state.evidence=0;
+      state.courage=0;
+      state.appease=0;
+      state.suspicion=0;
+      state.boundary=0;
+      state.anger=0;
+      state.flags={quickHangups:0};
+      state.ended=false;
+      setGameTime(21,47);
+      if('speechSynthesis' in window) window.speechSynthesis.cancel();
+      hideCallOverlay();
+      Object.values(chats).forEach(thread=>{
+        thread.innerHTML='';
+        thread.classList.remove('panic-mode','glitch','chat-switch-flash');
+      });
+      unread.yenting=0;
+      unread.xiaoqing=0;
+      chatWaiters.yenting.splice(0).forEach(resolve=>resolve());
+      chatWaiters.xiaoqing.splice(0).forEach(resolve=>resolve());
+      updateUnreadBadge('yenting');
+      updateUnreadBadge('xiaoqing');
+      switchChat('yenting',{animate:false});
+      choicesBox.innerHTML='';
+      choiceArea.classList.add('hidden');
+      endingOverlay.classList.add('hidden');
+      startOverlay.classList.remove('hidden');
+      nameInput.value='';
+      profileSub.textContent='上線中';
+      setTimeout(()=>nameInput.focus(),100);
+    }
+
+    function startGame(){
+      const value=nameInput.value.trim();
+      if(!value){
+        nameInput.focus();
+        nameInput.animate(
+          [{transform:'translateX(0)'},{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'translateX(0)'}],
+          {duration:260}
+        );
+        return;
+      }
+      state.name=value;
+      try{
+        audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
+        if(audioCtx.state==='suspended') audioCtx.resume();
+      }catch(error){}
+      setGameTime(18,42);
+      startOverlay.classList.add('hidden');
+      Object.values(chats).forEach(thread=>thread.innerHTML='');
+      unread.yenting=0;
+      unread.xiaoqing=0;
+      updateUnreadBadge('yenting');
+      updateUnreadBadge('xiaoqing');
+      switchChat('yenting',{animate:false});
+      play();
+    }
+
+
+    startBtn.addEventListener('click',startGame);
+    let nameInputComposing=false;
+    let consumeImeEnter=false;
+
+    nameInput.addEventListener('compositionstart',()=>{
+      nameInputComposing=true;
+    });
+
+    nameInput.addEventListener('compositionend',()=>{
+      nameInputComposing=false;
+      consumeImeEnter=true;
+    });
+
+    nameInput.addEventListener('keydown',event=>{
+      if(event.key!=='Enter') return;
+
+      if(nameInputComposing || event.isComposing || event.keyCode===229){
+        event.preventDefault();
+        consumeImeEnter=true;
+        return;
+      }
+
+      if(consumeImeEnter){
+        event.preventDefault();
+        consumeImeEnter=false;
+        return;
+      }
+
+      event.preventDefault();
+      startGame();
+    });
+    restartBtn.addEventListener('click',resetGame);
+    againBtn.addEventListener('click',resetGame);
+    soundBtn.addEventListener('click',()=>{
+      state.muted=!state.muted;
+      if(state.muted){
+        stopRingtone();
+      }
+      if(state.muted && 'speechSynthesis' in window){
+        voicePlaybackToken++;
+        window.speechSynthesis.cancel();
+        document.querySelectorAll('.voice-message.playing').forEach(el=>{
+          el.classList.remove('playing');
+          const button=el.querySelector('.voice-play');
+          if(button) button.textContent='▶';
+        });
+      }
+      soundBtn.textContent=state.muted?'🔇':'🔊';
+    });
+
+    document.addEventListener('visibilitychange',()=>{
+      if(!document.hidden && !state.ended && state.name){
+        showNotification('妳剛剛切去別的畫面？','yenting');
+      }
+    });
+  </script>
+</body>
+</html>
