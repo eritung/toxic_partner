@@ -1,4 +1,4 @@
-<!-- BUILD: v1.15.1 -->
+<!-- BUILD: v1.16.0 -->
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -615,6 +615,26 @@
       pointer-events:none;
     }
 
+
+    .ending-type{
+      position:relative;
+      z-index:1;
+      align-self:center;
+      flex:0 0 auto;
+      margin-bottom:8px;
+      padding:5px 11px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.12em;
+      color:#fff;
+      background:#565d66;
+    }
+
+    .ending-card.good .ending-type{background:#08783d}
+    .ending-card.bad .ending-type{background:#970018}
+    .ending-card.neutral .ending-type{background:#565d66}
+
     .ending-card h2{
       position:relative;
       z-index:1;
@@ -1099,6 +1119,7 @@
 
     <div id="endingOverlay" class="overlay hidden">
       <div id="endingCard" class="card ending-card">
+        <div id="endingType" class="ending-type"></div>
         <h2 id="endingTitle"></h2>
         <p id="endingText"></p>
         <button id="againBtn" class="primary">重新開始</button>
@@ -1143,7 +1164,7 @@
   </main>
 
   <script>
-    const GAME_VERSION = 'v1.15.1';
+    const GAME_VERSION = 'v1.16.0';
 
     const chats = {
       yenting: document.getElementById('chatYenting'),
@@ -1170,6 +1191,7 @@
     const startOverlay = document.getElementById('startOverlay');
     const endingOverlay = document.getElementById('endingOverlay');
     const endingCard = document.getElementById('endingCard');
+    const endingType = document.getElementById('endingType');
     const endingTitle = document.getElementById('endingTitle');
     const endingText = document.getElementById('endingText');
     const nameInput = document.getElementById('nameInput');
@@ -1198,6 +1220,7 @@
       suspicion: 0,
       boundary: 0,
       anger: 0,
+      phase: 0,
       muted: false,
       ended: false,
       flags: {}
@@ -1222,7 +1245,7 @@
       trapped: {
         tone: 'bad',
         title: '門外的人',
-        text: '你一路安撫他，試圖讓今晚和平結束。\n\n凌晨三點，門外傳來很輕的敲門聲。\n一下、兩下、三下。\n\n接著手機亮起：\n「我知道妳還沒睡。」\n\n門鎖慢慢轉動。\n那把你以為遺失的備用鑰匙，原來一直在他手上。',
+        text: '你一路安撫他，試圖讓今晚和平結束。\n\n凌晨三點，門鎖慢慢轉動。那把你以為遺失的備用鑰匙，原來一直在他手上。\n\n醒來時，手機、鑰匙和錢包都不見了。窗簾被拉上，臥室門外多了一把新的鎖。\n\n彥廷隔著門說：「等妳不再亂跑，我就放妳出來。」',
       },
       vanish: {
         tone: 'neutral',
@@ -1237,12 +1260,12 @@
       wrongDoor: {
         tone: 'bad',
         title: '錯的人在等你',
-        text: '你依照「小晴」的訊息走進地下二樓。\n\n貨梯門關上後，真正的小晴終於打來：\n「我一直在一樓，妳去哪裡了？」\n\n同一時間，身後傳來剛才語音裡的那句話。\n\n「終於肯來見我了。」',
+        text: '你依照「小晴」的訊息走進地下二樓。\n\n真正的小晴打來：「我一直在一樓，妳去哪裡了？」\n\n身後傳來彥廷的聲音。手機被他抽走，地下室的鐵門從外面落鎖。\n\n沒有窗戶，訊號也只剩一格。\n\n「等妳願意好好聽我說，我們再一起出去。」',
       },
       quietRoom: {
         tone: 'bad',
         title: '不要出聲',
-        text: '你決定躲在會議室裡等待一切結束。\n\n門外的腳步聲消失了，訊息也不再跳出。\n整層樓安靜得像沒有人。\n\n直到會議室的視訊螢幕自行亮起。\n畫面中是你坐在椅子上的背影。\n\n喇叭傳出低低的一句：\n「找到妳了。」',
+        text: '你決定躲在會議室裡等待一切結束。\n\n門外的腳步聲消失，視訊螢幕卻自行亮起。畫面中是你坐在椅子上的背影。\n\n喇叭傳出低低的一句：「找到妳了。」\n\n你衝向門口，才發現電子鎖已被遠端切換成禁止開啟。燈一盞一盞熄滅，手機只剩下彥廷的通話畫面。',
       },
       baited: {
         tone: 'good',
@@ -1262,12 +1285,12 @@
       detectedSOS: {
         tone: 'bad',
         title: '正在輸入',
-        text: '你在聊天室打出「幫我報警」。\n\n訊息還沒有送出，彥廷就傳來一張截圖。畫面裡，輸入框上方正顯示著「正在輸入」。\n\n門外的敲門聲停了。\n下一秒，那把備用鑰匙插進鎖孔。\n\n「妳為什麼總是要找別人來對付我？」',
+        text: '你在聊天室打出「幫我報警」。\n\n訊息還沒有送出，彥廷就傳來一張「正在輸入」的截圖。下一秒，備用鑰匙插進鎖孔。\n\n他拿走手機，把窗戶扣上安全鎖，說你最近情緒太不穩定，需要留在房間裡休息。\n\n門從外面關上前，他只問：「妳為什麼總是要找別人來對付我？」',
       },
       doorBreach: {
         tone: 'bad',
         title: '太大聲了',
-        text: '你直接撥出求救電話。\n\n安靜的房間裡，撥號聲比想像中更清楚。門外的人沒有再敲門，而是試著轉動門把。\n\n電話接通以前，門鎖先發出喀的一聲。\n\n最後留在通話紀錄裡的，只有一通長度六秒的電話。',
+        text: '你直接撥出求救電話。\n\n安靜的房間裡，撥號聲比想像中更清楚。電話接通以前，門鎖先發出喀的一聲。\n\n最後留在通話紀錄裡的，只有一通長度六秒的電話。\n\n幾天後，鄰居偶爾聽見房內有人走動，卻再也沒看見你獨自出門。彥廷說你只是需要一段時間，不想見任何人。',
       },
       archive: {
         tone: 'bad',
@@ -2205,9 +2228,112 @@
       await wait(450);
     }
 
+
+    let choiceIdleTimers=[];
+    let choiceIdleToken=0;
+
+    function clearChoiceIdleTimers(){
+      choiceIdleToken++;
+      choiceIdleTimers.forEach(timer=>clearTimeout(timer));
+      choiceIdleTimers=[];
+    }
+
+    function idleNudgeText(contact,stage=1){
+      state.flags.idleNudgeSerial=(state.flags.idleNudgeSerial || 0)+1;
+      const serial=state.flags.idleNudgeSerial;
+
+      if(contact==='xiaoqing'){
+        const lines=state.flags.homeThreatTriggered
+          ? [
+              '先不要打敏感字。不方便回就照剛才說的做。',
+              '不用回完整句子，先確認門鎖。',
+              '妳還在嗎？不方便回覆就先保持安靜。'
+            ]
+          : [
+              '妳還在嗎？先確認安全再回我。',
+              '不用急，我在。找到什麼再告訴我。',
+              '不方便打字就先別回，別讓他看出來。'
+            ];
+        return lines[(serial+stage)%lines.length];
+      }
+
+      if(state.flags.homeThreatTriggered){
+        const lines=[
+          '{name}，妳拿著手機在做什麼？',
+          '又不回。妳以為安靜就代表我不知道？',
+          '{name}，我就在門外，不要讓我一直等。'
+        ];
+        return lines[(serial+stage)%lines.length];
+      }
+
+      if(state.phase<=1){
+        const lines=[
+          '{name}，還在忙嗎？',
+          '怎麼突然沒回？面試還沒結束嗎？',
+          '看到的話回我一下，我在等妳。'
+        ];
+        return lines[(serial+stage)%lines.length];
+      }
+
+      if(state.phase===2){
+        const lines=[
+          '{name}？怎麼不回？',
+          '我只是問一下，妳不用故意不理我吧。',
+          '還在跟小晴聊天嗎？'
+        ];
+        return lines[(serial+stage)%lines.length];
+      }
+
+      if(state.anger>=9){
+        const lines=[
+          '妳每次都用不回訊息來懲罰我。',
+          '{name}，我愛妳才會一直等，別把我逼成這樣。',
+          '我是為妳好。妳不回，只會讓我更擔心。',
+          '又裝沒看到？我知道妳手機就在手上。'
+        ];
+        return lines[(serial+stage)%lines.length];
+      }
+
+      const lines=[
+        '{name}，怎麼不回我？',
+        '我愛妳，至少讓我知道妳還在。',
+        '我是為妳好，別把我的關心當成壓力。',
+        '妳不回，我只會一直想妳是不是出事了。',
+        '我沒有要控制妳，我只是太在乎妳。'
+      ];
+      return lines[(serial+stage)%lines.length];
+    }
+
+    function scheduleChoiceIdleNudges(contact){
+      clearChoiceIdleTimers();
+      const token=choiceIdleToken;
+
+      const sendNudge=stage=>{
+        if(
+          token!==choiceIdleToken ||
+          state.ended ||
+          choiceArea.classList.contains('hidden') ||
+          !choicesBox.children.length
+        ) return;
+
+        addMessage(
+          'other',
+          interpolate(idleNudgeText(contact,stage)),
+          {
+            creepy:contact==='yenting' && (state.phase>=3 || state.anger>=5),
+            contact
+          }
+        );
+      };
+
+      choiceIdleTimers.push(setTimeout(()=>sendNudge(1),9000));
+      choiceIdleTimers.push(setTimeout(()=>sendNudge(2),18000));
+    }
+
     function choose(options){
       return new Promise(resolve=>{
         const choiceContact=activeContact;
+        clearChoiceIdleTimers();
         choicesBox.innerHTML='';
         options.forEach((opt,index)=>{
           const btn=document.createElement('button');
@@ -2215,6 +2341,7 @@
           btn.textContent=interpolate(opt.label || opt.text);
           btn.addEventListener('click',()=>{
             if(state.ended) return;
+            clearChoiceIdleTimers();
             const content=interpolate(opt.sendText || opt.text);
             if(opt.action){
               addSystem(content,Boolean(opt.danger),choiceContact);
@@ -2236,6 +2363,7 @@
         });
         choiceArea.classList.remove('hidden');
         scrollBottom(choiceContact);
+        scheduleChoiceIdleNudges(choiceContact);
       });
     }
 
@@ -2318,12 +2446,25 @@
       const explicitTime=label.match(/(\d{1,2}):(\d{2})/);
       if(explicitTime){
         setGameTime(Number(explicitTime[1]),Number(explicitTime[2]));
-      }else if(label.includes('三週前')){
+      }
+
+      if(label.includes('三週前')){
+        state.phase=1;
         setGameTime(18,42);
       }else if(label.includes('一週前')){
+        state.phase=2;
         setGameTime(12,36);
+      }else if(label.includes('今天')){
+        state.phase=Math.max(state.phase,3);
       }else if(label.includes('隔天')){
+        state.phase=4;
         setGameTime(20,52);
+      }else if(
+        label.includes('天後') ||
+        label.includes('週後') ||
+        label.includes('月後')
+      ){
+        state.phase=5;
       }
 
       addDate(label,'yenting');
@@ -2474,16 +2615,10 @@
           text:'我已經報警了，你等著。',
           delta:{anger:5,courage:2},
           danger:true
-        },
-        {
-          id:'moreInsult',
-          text:'我的手機亮不亮都不關你的事，控制狂。',
-          delta:{anger:4,courage:1},
-          danger:true
         }
       ]);
 
-      if(coverStory==='truthSOS' || coverStory==='moreInsult'){
+      if(coverStory==='truthSOS'){
         await other('妳真的以為他們來得比我快？',430,{creepy:true});
         addSystem('鑰匙插進鎖孔。',true,'yenting');
         return endGame('detectedSOS');
@@ -2574,7 +2709,7 @@
         {id:'askCode',text:'先用語音說出暗號。',delta:{courage:2,evidence:1}},
         {id:'follow',text:'好，我現在下去。',delta:{appease:1},danger:true},
         {id:'ignore',text:'不回覆，照原路走向一樓正門。',action:true,delta:{boundary:2,courage:1}},
-        {id:'disgustHack',text:'連朋友的帳號都敢動，你到底還有沒有底線？',delta:{anger:4,courage:2,boundary:2},danger:true}
+        {id:'disgustHack',text:'噁男，連她的帳號都偷。',delta:{anger:4,courage:2,boundary:2},danger:true}
       ]);
 
       if(verify==='follow'){
@@ -2585,9 +2720,9 @@
       }
 
       if(verify==='disgustHack'){
-        await other('我沒有偷。',450,{creepy:true});
-        await other('她的密碼太簡單，是她自己不小心。',520,{creepy:true});
-        await other('{name}，妳為什麼永遠只看到我做錯的地方？',580,{creepy:true});
+        await other('她自己把密碼設得那麼簡單。',450,{creepy:true});
+        await other('我只是比她更早發現漏洞。',520,{creepy:true});
+        await other('{name}，妳只記得我越界，卻不記得我替妳擋過多少事。',580,{creepy:true});
         state.flags.insultedHack=true;
       }
 
@@ -2736,7 +2871,7 @@
         {id:'emptyRoom',text:'把定位器留在空會議室，從另一側樓梯離開。',action:true,delta:{courage:3,evidence:1,boundary:2}},
         {id:'faceHim',text:'走進會議室，當面叫他把所有東西刪掉。',action:true,danger:true},
         {id:'homeLie',text:'改口說自己已經回家，叫他去住處找你。',delta:{appease:2},danger:true},
-        {id:'finalInsult',text:'你不是放不下，是不能接受我不再受你控制。',delta:{anger:5,courage:2,boundary:2},danger:true}
+        {id:'finalInsult',text:'你只是不能接受我不再聽你的。',delta:{anger:5,courage:2,boundary:2},danger:true}
       ]);
 
       if(bait==='faceHim'){
@@ -2835,16 +2970,12 @@
       const intro=await choose([
         {id:'warm',text:'你居然還記得！我剛結束～',delta:{appease:1}},
         {id:'busy',text:'剛結束，但今天有點累。',delta:{boundary:1}},
-        {id:'calendar',text:'你怎麼知道我今天面試？',delta:{suspicion:1}},
-        {id:'disgustCalendar',text:'別把偷看行事曆說成驚喜，你就是控制狂。',delta:{anger:2,courage:1,boundary:2},danger:true}
+        {id:'calendar',text:'你怎麼知道我今天面試？',delta:{suspicion:1}}
       ]);
 
       if(intro==='calendar'){
         await other('妳的共享行事曆還開著啊。\n上次幫妳排旅遊行程的時候看到的。');
         await other('別緊張，我只是想替妳準備驚喜。');
-      }else if(intro==='disgustCalendar'){
-        await other('變態？\n我只是記得妳自己忘記關掉的東西。',580,{creepy:true});
-        await other('{name}，妳現在連我關心妳都覺得噁心嗎？',600,{creepy:true});
       }else if(intro==='busy'){
         await other('那我去接妳。\n妳累的時候最容易忘記看車。');
       }else{
@@ -2860,17 +2991,13 @@
       const lunch=await choose([
         {id:'story',text:'你看到我的限時動態？',delta:{suspicion:1}},
         {id:'coworker',text:'翔宇跟你說的？',delta:{suspicion:1}},
-        {id:'normal',text:'對啊，辣到不行 😂',delta:{appease:1}},
-        {id:'disgustLunch',text:'正常人不會查遍我身邊的人，你真的很有事。',delta:{anger:2,courage:1,boundary:1},danger:true}
+        {id:'normal',text:'對啊，辣到不行 😂',delta:{appease:1}}
       ]);
 
       if(lunch==='story'){
         await other('妳沒有發限動。\n是翔宇發的。');
       }else if(lunch==='coworker'){
         await other('沒有，我只是剛好看到他帳號。');
-      }else if(lunch==='disgustLunch'){
-        await other('我只是看看誰每天黏著妳。',520,{creepy:true});
-        await other('妳如果沒有事情瞞我，為什麼這麼生氣？',580,{creepy:true});
       }else{
         await other('下次不要點那麼辣。\n妳胃痛的時候晚上會睡不好。');
       }
@@ -2880,8 +3007,7 @@
       const jealousy=await choose([
         {id:'boundary',text:'他只是同事，你不要一直查我身邊的人。',delta:{boundary:2,courage:1}},
         {id:'explain',text:'剛好大家一起吃飯而已。',delta:{appease:1}},
-        {id:'tease',text:'你在吃醋喔？',delta:{appease:1}},
-        {id:'disgustJealous',text:'你不是吃醋，是把我當成你的東西。',delta:{anger:2,courage:1,boundary:2},danger:true}
+        {id:'tease',text:'你在吃醋喔？',delta:{appease:1}}
       ]);
 
       if(jealousy==='boundary'){
@@ -2891,13 +3017,6 @@
         await other('算了，妳不喜歡我就不問。');
       }else if(jealousy==='explain'){
         await other('我知道。\n但他看妳的方式不是同事。');
-      }else if(jealousy==='disgustJealous'){
-        await other('妳說我噁心？\n{name}，妳以前不會這樣跟我說話。',600,{creepy:true});
-        await callBarrage({
-          count:1,
-          lines:['{name}，把剛剛那句話再說一次。'],
-          timeout:6200
-        });
       }else{
         await other('當然會啊。\n因為妳是我的。');
       }
@@ -2922,17 +3041,13 @@
 
       const caughtChat=await choose([
         {id:'denyChat',text:'沒有，只是在聊工作。',delta:{appease:1}},
-        {id:'boundaryChat',text:'我跟誰聊天不需要向你報告。',delta:{boundary:2,courage:1}},
-        {id:'disgustChat',text:'對，我在告訴她你怎麼把監視包裝成關心。',delta:{anger:4,courage:2,boundary:2},danger:true}
+        {id:'boundaryChat',text:'我跟誰聊天不需要向你報告。',delta:{boundary:2,courage:1}}
       ]);
 
       if(caughtChat==='denyChat'){
         await other('那把妳們剛剛的對話截圖給我。');
       }else if(caughtChat==='boundaryChat'){
         await other('我們之間什麼時候需要分妳的、我的？');
-      }else{
-        await other('妳現在連外人都要一起拉進來羞辱我？',520,{creepy:true});
-        await other('{name}，妳最好想清楚，是誰一直在照顧妳。',580,{creepy:true});
       }
 
       addVoiceMessage(
@@ -2949,31 +3064,27 @@
         {id:'sweet',text:'到了～你呢？',delta:{appease:1}},
         {id:'short',text:'到了。',delta:{boundary:1}},
         {id:'why',text:'你怎麼知道我剛到？',delta:{suspicion:1,courage:1}},
-        {id:'disgustArrival',text:'少演深情了，你這叫跟蹤，不叫在乎。',delta:{anger:3,courage:2,boundary:2},danger:true},
-        {id:'mockConcern',text:'你最噁心的地方，就是每次越界都說自己只是擔心。',delta:{anger:4,courage:2,boundary:2},danger:true}
+        {id:'disgustArrival',text:'噁男，你是不是在跟蹤我？',delta:{anger:3,courage:2,boundary:2},danger:true}
       ]);
 
       if(arrived==='why'){
         await other('妳不是每天都差不多這個時間？\n我猜的。');
       }else if(arrived==='disgustArrival'){
-        await other('跟蹤？',450,{creepy:true});
-        await other('{name}，妳知道有人每天擔心妳，妳還用這種話傷他。',620,{creepy:true});
+        await other('跟蹤？妳現在連我等妳回家，都能說成跟蹤。',500,{creepy:true});
+        await other('好，我記住妳是怎麼形容我的。',560,{creepy:true});
         state.flags.calledStalker=true;
-      }else if(arrived==='mockConcern'){
-        await other('所以我擔心妳也有錯？',450,{creepy:true});
-        await other('妳只是想找理由把我說成壞人。',560,{creepy:true});
-        state.flags.mockedConcern=true;
       }else{
         await other('嗯，我也剛到。');
       }
 
+      await other('我愛妳，才會記得妳每天幾點回家。');
       await other('{name}，妳今天是不是繞去便利商店？');
 
       const store=await choose([
         {id:'ask',text:'你怎麼知道？',delta:{suspicion:1,evidence:1}},
         {id:'joke',text:'你裝監視器喔 😂',delta:{suspicion:1}},
         {id:'ignore',text:'嗯，買了點東西。',delta:{appease:1}},
-        {id:'disgustStore',text:'你每句關心都像監視報告，聽了只想吐。',delta:{anger:3,courage:1,boundary:2},danger:true}
+        {id:'disgustStore',text:'你這樣真的很噁心。',delta:{anger:3,courage:1,boundary:2},danger:true}
       ]);
 
       if(store==='joke'){
@@ -2985,8 +3096,8 @@
         await other('之前不是有開定位共享嗎？\n可能還沒關乾淨。');
         addSystem('你記得自己兩個月前就已關閉位置共享。',true);
       }else if(store==='disgustStore'){
-        await other('又是變態。',450,{creepy:true});
-        await other('妳現在是故意找最難聽的字來刺我嗎？',560,{creepy:true});
+        await other('妳一被我說中，就開始罵人。',450,{creepy:true});
+        await other('沒關係，我知道妳只是心虛。',560,{creepy:true});
         state.flags.insultedAtHome=true;
       }else{
         await other('草莓牛奶別喝太快，妳剛剛已經咳了兩次。');
@@ -2994,6 +3105,7 @@
         state.evidence++;
       }
 
+      await other('我是為妳好。妳一個人晚上繞路，我怎麼可能不管？');
       await other('對了，白色內搭很好看。',750,{creepy:true});
       flashScreen();
 
@@ -3008,7 +3120,7 @@
         {id:'deny',text:'我的外套整天都拉著，你怎麼看到的？',delta:{evidence:1,courage:1,boundary:1}},
         {id:'where',text:'你現在到底在哪裡？',delta:{suspicion:2,courage:1}},
         {id:'laugh',text:'你又記錯了吧。',delta:{appease:1}},
-        {id:'disgustClothes',text:'偷看還講得理直氣壯，你真的毫無羞恥心。',delta:{anger:3,courage:2,boundary:1},danger:true}
+        {id:'disgustClothes',text:'噁男，別再偷看我。',delta:{anger:3,courage:2,boundary:1},danger:true}
       ]);
 
       if(clothes==='deny'){
@@ -3017,8 +3129,8 @@
       }else if(clothes==='where'){
         await other('在家。\n妳幹嘛突然這麼緊張？');
       }else if(clothes==='disgustClothes'){
-        await other('我只是看我女朋友，哪裡噁心？',520,{creepy:true});
-        await other('{name}，不要用那種字形容我。',520,{creepy:true});
+        await other('我記得妳穿什麼也有錯？',500,{creepy:true});
+        await other('別把我說得像陌生人，我比誰都了解妳。',560,{creepy:true});
         await callBarrage({
           count:2,
           lines:[
@@ -3031,13 +3143,14 @@
         await other('{name}，我不會記錯妳的事情。');
       }
 
+      await other('我愛妳，所以妳的每個樣子我都想記住。');
       await other('我上次放在妳家的充電線還在嗎？');
 
       const keyTalk=await choose([
         {id:'noVisit',text:'你最近根本沒來過我家。',delta:{evidence:1,boundary:1}},
         {id:'check',text:'我找一下。',delta:{appease:1}},
         {id:'key',text:'你是不是還留著我家的鑰匙？',delta:{suspicion:2,courage:1}},
-        {id:'disgustKey',text:'你憑什麼把我家當你的地盤？滾遠一點。',delta:{anger:3,courage:2,boundary:2},danger:true}
+        {id:'disgustKey',text:'噁男，別把我家當你家。',delta:{anger:3,courage:2,boundary:2},danger:true}
       ]);
 
       if(keyTalk==='noVisit'){
@@ -3049,8 +3162,8 @@
         addSystem('他在你查看以前就知道結果。',true);
         state.evidence++;
       }else if(keyTalk==='disgustKey'){
-        await other('噁男？',500,{creepy:true});
-        await other('{name}，妳最好不要等我真的站在妳家門口時，才說不是那個意思。',650,{creepy:true});
+        await other('我知道妳東西放哪裡，是因為我有用心。',500,{creepy:true});
+        await other('妳非要把所有關心都說得這麼難聽，我也沒辦法。',650,{creepy:true});
         state.flags.threatenedDoor=true;
       }else{
         await other('不是放在藍色雨傘筒下面嗎？');
@@ -3073,8 +3186,7 @@
         {id:'inspect',text:'先不要質問，檢查手機與隨身物品。',action:true,delta:{courage:1,evidence:1}},
         {id:'confront',text:'你是不是在我身上放了定位器？',delta:{courage:2,suspicion:1}},
         {id:'dismiss',text:'可能只是鄰居的裝置。',action:true,delta:{appease:2}},
-        {id:'disgustTracker',text:'裝定位器還說是保護，你連自己有多可怕都不知道。',delta:{anger:4,courage:2,boundary:2},danger:true},
-        {id:'callOutControl',text:'你不是怕我出事，你只是怕我離開你的視線。',delta:{anger:4,courage:2,boundary:3},danger:true}
+        {id:'disgustTracker',text:'噁男，你還敢裝定位器？',delta:{anger:4,courage:2,boundary:2},danger:true}
       ]);
 
       if(firstInvestigation==='dismiss'){
@@ -3084,21 +3196,9 @@
       }else if(firstInvestigation==='confront'){
         await other('妳在說什麼？\n我送妳的東西都是怕妳弄丟。');
         await other('把包包吊飾拆下來看看啊。',650,{creepy:true});
-      }else if(firstInvestigation==='disgustTracker' || firstInvestigation==='callOutControl'){
-        await other(
-          firstInvestigation==='callOutControl'
-            ? '妳離開我的視線，才是真的危險。'
-            : '不要再用那種字形容我。',
-          480,
-          {creepy:true}
-        );
-        await other(
-          firstInvestigation==='callOutControl'
-            ? '{name}，妳根本不知道外面的人會怎麼對妳。只有我是真的在保護妳。'
-            : '我只是想知道妳有沒有平安到家。妳為什麼一定要把我說得那麼難聽？',
-          620,
-          {creepy:true}
-        );
+      }else if(firstInvestigation==='disgustTracker'){
+        await other('妳把保護說成監視，真的很會扭曲。',480,{creepy:true});
+        await other('{name}，等妳冷靜就會知道，我做這些都是為妳好。',620,{creepy:true});
         state.flags.rageCalls=true;
         await relentlessCalls({
           lines:[
@@ -3202,7 +3302,7 @@
 
       addVoiceMessage(
         '彥廷',
-        '{name}，不要把我們的事情給小晴看。她根本不了解我們。',
+        '{name}，我愛妳才不想讓別人插手。小晴根本不了解我們。',
         {duration:'00:08',pitch:.87,rate:.92,contact:'yenting'}
       );
       await wait(500);
@@ -3258,7 +3358,7 @@
       const friendQuestion=await choose([
         {id:'nothingFriend',text:'沒什麼。',delta:{appease:1}},
         {id:'stopHarassing',text:'她叫你不要再騷擾我們。',delta:{boundary:2,courage:1}},
-        {id:'disgustFriend',text:'她也看得出來，你根本不是愛我，是想佔有我。',delta:{anger:4,courage:2,boundary:2},danger:true}
+        {id:'disgustFriend',text:'你就是用愛當藉口控制人。',delta:{anger:4,courage:2,boundary:2},danger:true}
       ]);
 
       if(friendQuestion==='nothingFriend'){
@@ -3266,8 +3366,8 @@
       }else if(friendQuestion==='stopHarassing'){
         await other('所以現在變成「我們」了？');
       }else{
-        await other('跟蹤狂？',450,{creepy:true});
-        await other('她根本不知道我為妳做過多少事。',540,{creepy:true});
+        await other('小晴只聽妳的一面，當然會這樣說。',450,{creepy:true});
+        await other('等她害妳出事，最後還是只有我會留下來。',560,{creepy:true});
         state.flags.insultedWithFriend=true;
       }
 
@@ -3276,7 +3376,7 @@
           {id:'continue',text:'繼續往相簿最早的日期查看。',action:true,delta:{evidence:1},danger:true},
           {id:'backup',text:'停止查看，立刻備份相簿與登入紀錄。',action:true,delta:{evidence:2,courage:1}},
           {id:'delete',text:'太噁心了，直接刪除整個相簿。',action:true,delta:{appease:1}},
-          {id:'disgustAlbum',text:'把偷拍照叫回憶？你根本不懂什麼叫尊重。',delta:{anger:4,courage:2,boundary:2},danger:true}
+          {id:'disgustAlbum',text:'偷拍還敢叫回憶，真的很噁。',delta:{anger:4,courage:2,boundary:2},danger:true}
         ]);
 
         if(albumChoice==='continue' && state.courage<3){
@@ -3290,8 +3390,8 @@
           await other('為什麼要刪掉我們的回憶？',700,{creepy:true});
         }
         if(albumChoice==='disgustAlbum'){
-          await other('那些不是偷拍。',480,{creepy:true});
-          await other('那是我比任何人都早看見妳的證明。',620,{creepy:true});
+          await other('我只是留下妳自己沒注意到的瞬間。',480,{creepy:true});
+          await other('妳現在覺得噁心，早晚會懂那是因為我愛妳。',620,{creepy:true});
           if(!state.flags.rageCalls){
             await callBarrage({
               count:2,
@@ -3530,13 +3630,20 @@
 
     async function endGame(key){
       state.ended=true;
+      clearChoiceIdleTimers();
       choiceArea.classList.add('hidden');
       choicesBox.innerHTML='';
 
       await playEndingSequence(key);
 
       const data=endings[key];
+      const endingLabels={
+        good:'好結局',
+        bad:'壞結局',
+        neutral:'未完結局'
+      };
       endingCard.className=`card ending-card ${data.tone}`;
+      endingType.textContent=endingLabels[data.tone] || '結局';
       endingTitle.textContent=data.title;
       endingText.textContent=interpolate(data.text + endingAftermath(key));
       endingText.scrollTop=0;
@@ -3546,6 +3653,7 @@
     }
 
     function resetGame(){
+      clearChoiceIdleTimers();
       state.name='';
       state.evidence=0;
       state.courage=0;
@@ -3553,7 +3661,8 @@
       state.suspicion=0;
       state.boundary=0;
       state.anger=0;
-      state.flags={quickHangups:0};
+      state.phase=0;
+      state.flags={quickHangups:0,idleNudgeSerial:0};
       state.ended=false;
       setGameTime(21,47);
       if('speechSynthesis' in window) window.speechSynthesis.cancel();
@@ -3579,6 +3688,7 @@
     }
 
     function startGame(){
+      clearChoiceIdleTimers();
       const value=nameInput.value.trim();
       if(!value){
         nameInput.focus();
