@@ -1,4 +1,4 @@
-<!-- BUILD: v1.17.0 -->
+<!-- BUILD: v1.17.1 -->
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -543,16 +543,6 @@
     }
 
 
-    .voice-status{
-      padding:0 11px 11px;
-      font-size:10px;
-      line-height:1.5;
-      color:#68717a;
-    }
-
-    .voice-status.ok{color:#08783d}
-    .voice-status.warn{color:#9a5200}
-    .voice-status.bad{color:#970018}
 
     .voice-preview{
       width:30px;
@@ -1125,29 +1115,6 @@
         <h1>已讀不回</h1>
         <p>他總是記得你說過的每件事。<br>直到有一天，他開始知道你沒說過的事。</p>
         <input id="nameInput" class="name-input" maxlength="20" placeholder="輸入你的名字" autocomplete="off" />
-
-        <details id="voiceSettings" class="voice-settings">
-          <summary>彥廷聲音設定</summary>
-
-          <div class="voice-setting-row">
-            <label for="yentingVoiceMode">模式</label>
-            <select id="yentingVoiceMode">
-              <option value="system">台灣系統男聲（較自然）</option>
-              <option value="bundled">內建離線男聲</option>
-              <option value="silent">關閉彥廷語音</option>
-            </select>
-            <button id="yentingVoicePreview" class="voice-preview" type="button" aria-label="試聽彥廷聲音">▶</button>
-          </div>
-
-          <div class="voice-setting-row">
-            <label for="yentingVoiceSelect">聲線</label>
-            <select id="yentingVoiceSelect"></select>
-            <span></span>
-          </div>
-
-          <div id="yentingVoiceStatus" class="voice-status"></div>
-        </details>
-
         <button id="startBtn" class="primary">進入聊天室</button>
       </div>
     </div>
@@ -1199,7 +1166,7 @@
   </main>
 
   <script>
-    const GAME_VERSION = 'v1.17.0';
+    const GAME_VERSION = 'v1.17.1';
 
     const chats = {
       yenting: document.getElementById('chatYenting'),
@@ -1230,11 +1197,6 @@
     const endingTitle = document.getElementById('endingTitle');
     const endingText = document.getElementById('endingText');
     const nameInput = document.getElementById('nameInput');
-    const voiceSettings = document.getElementById('voiceSettings');
-    const yentingVoiceMode = document.getElementById('yentingVoiceMode');
-    const yentingVoiceSelect = document.getElementById('yentingVoiceSelect');
-    const yentingVoicePreview = document.getElementById('yentingVoicePreview');
-    const yentingVoiceStatus = document.getElementById('yentingVoiceStatus');
     const startBtn = document.getElementById('startBtn');
     const restartBtn = document.getElementById('restartBtn');
     const againBtn = document.getElementById('againBtn');
@@ -1607,28 +1569,12 @@
       }
     }
 
-    function selectedVoiceName(sender='彥廷'){
-      if(sender!=='彥廷') return '';
-      return yentingVoiceSelect?.value || '';
-    }
-
-    function selectedYentingVoice(){
-      const selected=selectedVoiceName('彥廷');
-      return selected
-        ? cachedVoices.find(voice=>voice.name===selected)
-        : null;
+    function selectedVoiceName(){
+      return '';
     }
 
     function bestTaiwanMaleVoice(){
-      return cachedVoices.find(voice=>{
-        const name=voice.name || '';
-        const lang=voice.lang || '';
-        return (
-          /^(zh|cmn)-TW/i.test(lang) &&
-          maleVoicePattern.test(name) &&
-          !femaleVoicePattern.test(name)
-        );
-      }) || cachedVoices.find(voice=>{
+      const maleChineseVoices=cachedVoices.filter(voice=>{
         const name=voice.name || '';
         const lang=voice.lang || '';
         return (
@@ -1637,76 +1583,25 @@
           !femaleVoicePattern.test(name)
         );
       });
+
+      return maleChineseVoices.find(voice=>
+        /^(zh|cmn)-TW/i.test(voice.lang || '')
+      ) || maleChineseVoices.find(voice=>
+        /^(zh|cmn)-(HK|MO)/i.test(voice.lang || '')
+      ) || maleChineseVoices[0];
     }
 
-    function updateYentingVoiceStatus(){
-      if(!yentingVoiceStatus || !yentingVoiceMode) return;
-
-      const mode=yentingVoiceMode.value;
-      const selected=selectedYentingVoice();
-      const automaticMale=bestTaiwanMaleVoice();
-
-      yentingVoiceStatus.className='voice-status';
-
-      if(mode==='silent'){
-        yentingVoiceStatus.textContent='彥廷的語音訊息與電話將保持靜音。';
-        return;
-      }
-
-      if(mode==='bundled'){
-        yentingVoiceStatus.classList.add('warn');
-        yentingVoiceStatus.textContent='使用內建離線男聲；不需下載，但合成感會比較明顯。';
-        return;
-      }
-
-      if(selected){
-        const isTaiwan=/^(zh|cmn)-TW/i.test(selected.lang || '');
-        const looksMale=maleVoicePattern.test(selected.name || '');
-
-        yentingVoiceStatus.classList.add(isTaiwan && looksMale ? 'ok' : 'warn');
-        yentingVoiceStatus.textContent=
-          `目前使用：${selected.name}（${selected.lang || '未知語系'}）` +
-          (isTaiwan && looksMale ? '，已辨識為台灣男性聲線。' : '，請先試聽確認。');
-        return;
-      }
-
-      if(automaticMale){
-        yentingVoiceStatus.classList.add('ok');
-        yentingVoiceStatus.textContent=
-          `已偵測台灣男性聲線：${automaticMale.name}。`;
-        return;
-      }
-
-      yentingVoiceStatus.classList.add('bad');
-      yentingVoiceStatus.textContent=
-        '手機目前沒有提供可辨識的台灣男性聲線，播放時會使用內建備援。可先到手機系統下載中文（台灣）男性聲線，再重新開啟網頁。';
-    }
-
-    function populateVoiceSelectors(){
-      populateVoiceSelect(yentingVoiceSelect,'彥廷');
-
-      const storedMode=safeStorageGet('yenting-voice-mode');
-      if(storedMode && ['system','bundled','silent'].includes(storedMode)){
-        yentingVoiceMode.value=storedMode;
-      }
-
-      if(!selectedVoiceName('彥廷')){
-        const male=bestTaiwanMaleVoice();
-        if(male) yentingVoiceSelect.value=male.name;
-      }
-
-      updateYentingVoiceStatus();
-    }
-
-    refreshVoices();
-    if('speechSynthesis' in window){
-      window.speechSynthesis.addEventListener?.('voiceschanged',refreshVoices);
-    }
+    function populateVoiceSelectors(){}
 
     // Mobile speech engines may expose only one Chinese voice.
     // Yenting therefore uses male-name scoring plus a separate low-pitch profile.
     const maleVoicePattern=/male|man|男|YunJhe|Yun-Jhe|Yunxi|Yunyang|Li-mu|LiMu|Limu|雲哲|李木|cmn-TW.*(?:B|D)|zh-TW.*(?:B|D)|Eddy|Reed|Rocko|Ralph|Daniel|Aaron|Alex|Fred|Thomas|Tom|Arthur|Albert|Bruce|Junior|Lee|Liam|Otoya|Ichiro|Takumi|Daichi|Naoki|Keita|Daisuke|雲哲|雲希|雲揚|李木/i;
     const femaleVoicePattern=/female|woman|女|HsiaoChen|Xiaoxiao|Mei-Jia|Meijia|Ting-Ting|Sin-ji|Samantha|Victoria|Karen|Moira|Kyoko|O-ren|美佳|曉辰|婷婷|小小/i;
+
+    refreshVoices();
+    if('speechSynthesis' in window){
+      window.speechSynthesis.addEventListener?.('voiceschanged',refreshVoices);
+    }
 
     function voiceScore(voice,sender='彥廷',targetLang='zh-TW'){
       const name=voice.name || '';
@@ -1742,14 +1637,13 @@
     }
 
     function pickVoice(sender='彥廷'){
-      const selected=selectedVoiceName(sender);
-      if(selected){
-        const exact=cachedVoices.find(voice=>voice.name===selected);
-        if(exact) return exact;
+      if(sender==='彥廷'){
+        const maleVoice=bestTaiwanMaleVoice();
+        if(maleVoice) return maleVoice;
       }
 
       return bestScoredVoice(sender,'zh-TW')
-        || cachedVoices.find(voice=>/^zh/i.test(voice.lang || ''))
+        || cachedVoices.find(voice=>/^(zh|cmn)/i.test(voice.lang || ''))
         || cachedVoices.find(voice=>voice.localService)
         || cachedVoices[0];
     }
@@ -1810,12 +1704,6 @@
     // Player names in bundled clips are spoken as 寶貝.
     // Natural mode uses a real Taiwan system voice whenever the phone exposes one.
     function shouldUseBundledYentingMale(){
-      const mode=yentingVoiceMode?.value || 'system';
-
-      if(mode==='bundled') return true;
-      if(mode==='silent') return false;
-      if(selectedYentingVoice()) return false;
-
       return !bestTaiwanMaleVoice();
     }
     const bundledYentingObjectUrls=new Map();
@@ -1941,7 +1829,6 @@
       language='auto'
     }={}){
       if(state.muted) return;
-      if(sender==='彥廷' && yentingVoiceMode?.value==='silent') return;
 
       voicePlaybackToken++;
       const token=voicePlaybackToken;
@@ -2169,7 +2056,7 @@
 
     function speakCallLine(text){
       return new Promise(resolve=>{
-        if(state.muted || yentingVoiceMode?.value==='silent'){
+        if(state.muted){
           setTimeout(resolve,500);
           return;
         }
@@ -4437,20 +4324,6 @@
       play();
     }
 
-
-    yentingVoiceMode?.addEventListener('change',()=>{
-      safeStorageSet('yenting-voice-mode',yentingVoiceMode.value);
-      updateYentingVoiceStatus();
-    });
-
-    yentingVoiceSelect?.addEventListener('change',()=>{
-      safeStorageSet('voice-彥廷',yentingVoiceSelect.value);
-      updateYentingVoiceStatus();
-    });
-
-    yentingVoicePreview?.addEventListener('click',()=>{
-      previewVoice('彥廷');
-    });
 
     startBtn.addEventListener('click',startGame);
     let nameInputComposing=false;
