@@ -1,4 +1,4 @@
-<!-- BUILD: v1.16.0 -->
+<!-- BUILD: v1.16.3 -->
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -1164,7 +1164,7 @@
   </main>
 
   <script>
-    const GAME_VERSION = 'v1.16.0';
+    const GAME_VERSION = 'v1.16.3';
 
     const chats = {
       yenting: document.getElementById('chatYenting'),
@@ -1574,6 +1574,44 @@
       return '';
     }
 
+    // Mobile speech engines may expose only one Chinese voice.
+    // Yenting therefore uses male-name scoring plus a separate low-pitch profile.
+    const maleVoicePattern=/male|man|男|YunJhe|Yunxi|Yunyang|Li-mu|Limu|Eddy|Reed|Rocko|Ralph|Daniel|Aaron|Alex|Fred|Thomas|Tom|Arthur|Albert|Bruce|Junior|Lee|Liam|Otoya|Ichiro|Takumi|Daichi|Naoki|Keita|Daisuke|雲哲|雲希|雲揚|李木/i;
+    const femaleVoicePattern=/female|woman|女|HsiaoChen|Xiaoxiao|Mei-Jia|Meijia|Ting-Ting|Sin-ji|Samantha|Victoria|Karen|Moira|Kyoko|O-ren|美佳|曉辰|婷婷|小小/i;
+
+    function voiceScore(voice,sender='彥廷',targetLang='zh-TW'){
+      const name=voice.name || '';
+      const lang=(voice.lang || '').toLowerCase();
+      const target=targetLang.toLowerCase();
+      const prefix=target.split('-')[0];
+      let score=0;
+
+      if(lang===target) score+=70;
+      else if(lang.startsWith(prefix)) score+=48;
+
+      if(voice.localService) score+=12;
+
+      if(sender==='彥廷'){
+        if(maleVoicePattern.test(name)) score+=95;
+        if(femaleVoicePattern.test(name)) score-=85;
+        if(/zh-tw/i.test(voice.lang || '')) score+=18;
+      }else{
+        if(femaleVoicePattern.test(name)) score+=70;
+        if(maleVoicePattern.test(name)) score-=45;
+        if(/zh-tw/i.test(voice.lang || '')) score+=18;
+      }
+
+      return score;
+    }
+
+    function bestScoredVoice(sender='彥廷',targetLang='zh-TW'){
+      if(!cachedVoices.length) refreshVoices();
+
+      return cachedVoices
+        .map(voice=>({voice,score:voiceScore(voice,sender,targetLang)}))
+        .sort((a,b)=>b.score-a.score)[0]?.voice;
+    }
+
     function pickVoice(sender='彥廷'){
       const selected=selectedVoiceName(sender);
       if(selected){
@@ -1581,15 +1619,8 @@
         if(exact) return exact;
       }
 
-      const preferredNames = sender==='小晴'
-        ? /HsiaoChen|Xiaoxiao|Mei-Jia|Meijia|美佳|曉辰|Ting-Ting/i
-        : /YunJhe|Yunxi|Yunyang|Sin-ji|雲哲|雲希|雲揚/i;
-
-      return cachedVoices.find(voice=>preferredNames.test(voice.name))
-        || cachedVoices.find(voice=>/zh-TW/i.test(voice.lang) && voice.localService)
-        || cachedVoices.find(voice=>/zh-TW/i.test(voice.lang))
-        || cachedVoices.find(voice=>/^zh/i.test(voice.lang) && voice.localService)
-        || cachedVoices.find(voice=>/^zh/i.test(voice.lang))
+      return bestScoredVoice(sender,'zh-TW')
+        || cachedVoices.find(voice=>/^zh/i.test(voice.lang || ''))
         || cachedVoices.find(voice=>voice.localService)
         || cachedVoices[0];
     }
@@ -1606,18 +1637,7 @@
     }
 
     function pickLanguageVoice(lang,sender='彥廷'){
-      const normalized=lang.toLowerCase();
-      const prefix=normalized.split('-')[0];
-
-      return cachedVoices.find(voice=>
-        voice.lang?.toLowerCase()===normalized && voice.localService
-      ) || cachedVoices.find(voice=>
-        voice.lang?.toLowerCase()===normalized
-      ) || cachedVoices.find(voice=>
-        voice.lang?.toLowerCase().startsWith(prefix) && voice.localService
-      ) || cachedVoices.find(voice=>
-        voice.lang?.toLowerCase().startsWith(prefix)
-      ) || pickVoice(sender);
+      return bestScoredVoice(sender,lang) || pickVoice(sender);
     }
 
     function normalizeVoiceText(text){
@@ -1700,8 +1720,16 @@
         const utterance=new SpeechSynthesisUtterance(segment.text);
         if(segment.voice) utterance.voice=segment.voice;
         utterance.lang=segment.lang;
-        utterance.pitch=Math.min(1.03,Math.max(.97,pitch ?? 1));
-        utterance.rate=Math.min(1.03,Math.max(.94,rate ?? .99));
+        const isYenting=sender==='彥廷';
+        const defaultPitch=isYenting ? .76 : 1.02;
+        const defaultRate=isYenting ? .9 : .98;
+        const minPitch=isYenting ? .62 : .94;
+        const maxPitch=isYenting ? .88 : 1.12;
+        const minRate=isYenting ? .82 : .9;
+        const maxRate=isYenting ? .96 : 1.08;
+
+        utterance.pitch=Math.min(maxPitch,Math.max(minPitch,pitch ?? defaultPitch));
+        utterance.rate=Math.min(maxRate,Math.max(minRate,rate ?? defaultRate));
         utterance.volume=volume;
         utterance.onend=()=>setTimeout(()=>speakSegment(index+1),55);
         utterance.onerror=finish;
@@ -1875,8 +1903,8 @@
           const utterance=new SpeechSynthesisUtterance(segment.text);
           if(segment.voice) utterance.voice=segment.voice;
           utterance.lang=segment.lang;
-          utterance.pitch=.98;
-          utterance.rate=.96;
+          utterance.pitch=.74;
+          utterance.rate=.88;
           utterance.volume=.96;
           utterance.onend=()=>setTimeout(()=>speakNext(index+1),70);
           utterance.onerror=()=>resolve();
@@ -2238,68 +2266,69 @@
       choiceIdleTimers=[];
     }
 
-    function idleNudgeText(contact,stage=1){
+    function idleNudgeText(contact,stage=1,elapsedSeconds=9){
       state.flags.idleNudgeSerial=(state.flags.idleNudgeSerial || 0)+1;
       const serial=state.flags.idleNudgeSerial;
+      const secondsText=`${elapsedSeconds} 秒`;
 
       if(contact==='xiaoqing'){
         const lines=state.flags.homeThreatTriggered
           ? [
-              '先不要打敏感字。不方便回就照剛才說的做。',
-              '不用回完整句子，先確認門鎖。',
-              '妳還在嗎？不方便回覆就先保持安靜。'
+              `妳已經 ${secondsText} 沒回了。不方便回就先保持安靜。`,
+              `已經過了 ${secondsText}。先確認門鎖，不用打完整句子。`,
+              `妳 ${secondsText} 沒有回覆。先照剛才說的做。`
             ]
           : [
-              '妳還在嗎？先確認安全再回我。',
-              '不用急，我在。找到什麼再告訴我。',
-              '不方便打字就先別回，別讓他看出來。'
+              `妳已經 ${secondsText} 沒回了，還好嗎？`,
+              `已經過了 ${secondsText}。不用急，先確認安全再回我。`,
+              `妳 ${secondsText} 沒有回覆，不方便打字就先別回。`
             ];
         return lines[(serial+stage)%lines.length];
       }
 
       if(state.flags.homeThreatTriggered){
         const lines=[
-          '{name}，妳拿著手機在做什麼？',
-          '又不回。妳以為安靜就代表我不知道？',
-          '{name}，我就在門外，不要讓我一直等。'
+          `{name}，妳已經 ${secondsText} 沒回我了。手機不是還在手上嗎？`,
+          `已經 ${secondsText} 了。妳以為安靜就代表我不知道？`,
+          `{name}，我在門外等了 ${secondsText}。不要讓我一直等。`
         ];
         return lines[(serial+stage)%lines.length];
       }
 
       if(state.phase<=1){
         const lines=[
-          '{name}，還在忙嗎？',
-          '怎麼突然沒回？面試還沒結束嗎？',
-          '看到的話回我一下，我在等妳。'
+          `{name}，妳已經 ${secondsText} 沒回我了喔，還好嗎？`,
+          `已經過了 ${secondsText}，面試還沒結束嗎？`,
+          `妳 ${secondsText} 沒有回覆，看到的話跟我說一聲。`
         ];
         return lines[(serial+stage)%lines.length];
       }
 
       if(state.phase===2){
         const lines=[
-          '{name}？怎麼不回？',
-          '我只是問一下，妳不用故意不理我吧。',
-          '還在跟小晴聊天嗎？'
+          `{name}，妳已經 ${secondsText} 沒回了，還在忙嗎？`,
+          `已經 ${secondsText} 了，妳不用故意不理我吧。`,
+          `妳 ${secondsText} 沒回覆，還在跟小晴聊天嗎？`
         ];
         return lines[(serial+stage)%lines.length];
       }
 
       if(state.anger>=9){
         const lines=[
-          '妳每次都用不回訊息來懲罰我。',
-          '{name}，我愛妳才會一直等，別把我逼成這樣。',
-          '我是為妳好。妳不回，只會讓我更擔心。',
-          '又裝沒看到？我知道妳手機就在手上。'
+          `妳已經 ${secondsText} 沒回我了。又在用沉默懲罰我嗎？`,
+          `{name}，${secondsText} 了。我愛妳才會一直等。`,
+          `已經過了 ${secondsText}。我是為妳好，別逼我一直擔心。`,
+          `妳 ${secondsText} 沒回。我知道手機就在妳手上。`
         ];
         return lines[(serial+stage)%lines.length];
       }
 
       const lines=[
-        '{name}，怎麼不回我？',
-        '我愛妳，至少讓我知道妳還在。',
-        '我是為妳好，別把我的關心當成壓力。',
-        '妳不回，我只會一直想妳是不是出事了。',
-        '我沒有要控制妳，我只是太在乎妳。'
+        `{name}，妳已經 ${secondsText} 沒回我了喔，還好嗎？`,
+        `已經 ${secondsText} 了。我愛妳，至少讓我知道妳還在。`,
+        `妳 ${secondsText} 沒回覆。我是為妳好，才會一直等。`,
+        `已經過了 ${secondsText}，妳是不是出事了？`,
+        `妳 ${secondsText} 沒有回我，我真的會擔心。`
       ];
       return lines[(serial+stage)%lines.length];
     }
@@ -2308,7 +2337,7 @@
       clearChoiceIdleTimers();
       const token=choiceIdleToken;
 
-      const sendNudge=stage=>{
+      const sendNudge=(stage,elapsedSeconds)=>{
         if(
           token!==choiceIdleToken ||
           state.ended ||
@@ -2318,7 +2347,7 @@
 
         addMessage(
           'other',
-          interpolate(idleNudgeText(contact,stage)),
+          interpolate(idleNudgeText(contact,stage,elapsedSeconds)),
           {
             creepy:contact==='yenting' && (state.phase>=3 || state.anger>=5),
             contact
@@ -2326,8 +2355,8 @@
         );
       };
 
-      choiceIdleTimers.push(setTimeout(()=>sendNudge(1),9000));
-      choiceIdleTimers.push(setTimeout(()=>sendNudge(2),18000));
+      choiceIdleTimers.push(setTimeout(()=>sendNudge(1,9),9000));
+      choiceIdleTimers.push(setTimeout(()=>sendNudge(2,18),18000));
     }
 
     function choose(options){
@@ -3058,11 +3087,53 @@
       await wait(550);
 
       await timeJump('今天・21:47');
-      await other('{name}，到家了嗎？');
+      addSystem('你剛走進住處一樓。感應門在身後關上。',false,'yenting');
+      await other('{name}，到樓下了嗎？');
+
+      const arrivalSpam=state.anger>=5
+        ? [
+            '{name}',
+            '{name}',
+            '{name}',
+            '{name}',
+            '回我',
+            '不要裝沒看到',
+            '我知道妳就在樓下',
+            '快上樓',
+            '我愛妳',
+            '我是為妳好',
+            '我只是想確定妳平安',
+            Array.from({length:12},()=>'{name}').join(''),
+            Array.from({length:8},()=> '回我').join(''),
+            '妳不回我只會讓我更擔心妳到底懂不懂'
+          ]
+        : [
+            '{name}',
+            '{name}',
+            '到了嗎',
+            '怎麼不回',
+            '我只是想確定妳平安',
+            '我愛妳',
+            '回我一下',
+            '我是為妳好',
+            Array.from({length:6},()=>'{name}').join(''),
+            '不要讓我一直等'
+          ];
+
+      await spamMessages(arrivalSpam,state.anger>=5 ? 112 : 145);
+
+      if(state.anger>=7){
+        addVoiceMessage(
+          '彥廷',
+          '{name}，我知道妳已經到樓下了。不要故意不回我。',
+          {duration:'00:08',pitch:.76,rate:.88,contact:'yenting'}
+        );
+        await wait(480);
+      }
 
       const arrived=await choose([
-        {id:'sweet',text:'到了～你呢？',delta:{appease:1}},
-        {id:'short',text:'到了。',delta:{boundary:1}},
+        {id:'sweet',text:'剛到樓下～你呢？',delta:{appease:1}},
+        {id:'short',text:'剛到。',delta:{boundary:1}},
         {id:'why',text:'你怎麼知道我剛到？',delta:{suspicion:1,courage:1}},
         {id:'disgustArrival',text:'噁男，你是不是在跟蹤我？',delta:{anger:3,courage:2,boundary:2},danger:true}
       ]);
@@ -3074,7 +3145,7 @@
         await other('好，我記住妳是怎麼形容我的。',560,{creepy:true});
         state.flags.calledStalker=true;
       }else{
-        await other('嗯，我也剛到。');
+        await other('那就快上樓，外面很冷。');
       }
 
       await other('我愛妳，才會記得妳每天幾點回家。');
