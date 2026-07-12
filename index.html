@@ -1,4 +1,4 @@
-<!-- BUILD: v1.17.6 -->
+<!-- BUILD: v1.17.8 -->
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -1233,7 +1233,7 @@
   </main>
 
   <script>
-    const GAME_VERSION = 'v1.17.6';
+    const GAME_VERSION = 'v1.17.8';
 
     const chats = {
       yenting: document.getElementById('chatYenting'),
@@ -1344,7 +1344,7 @@
       wrongDoor: {
         tone: "bad",
         title: "錯的人在等你",
-        text: "你相信了幾乎正確的暗號，走進地下二樓。真正的小晴打來時，彥廷已從身後拿走手機，鐵門也在你面前落下。\n\n他把你關在沒有窗戶的儲藏室裡整整一夜，反覆要求你解鎖手機、刪除備份，並傳訊息告訴小晴：「我只是需要一個人靜一靜。」你拒絕一次，他就把離開的時間再往後延。\n\n清晨，他才從停車場把你帶出去，警告你若報警，就會公開他從共享相簿取得的照片與私人訊息。你回到家時沒有明顯傷痕，手機裡卻幾乎沒有留下能證明那晚的資料。\n\n兩個月後，彥廷換了大頭貼，照片裡摟著另一個女生。他傳來一句：「她不像妳，她很聽話。」那不是思念，而是在確認你仍會不會因為他的新目標而回覆。\n\n你沒有回。小晴陪你重新拼回刪除前的時間線，但地下室那扇門曾經關上的聲音，仍會在每次電梯抵達地下樓層時重新出現。"
+        text: "你相信了那個幾乎正確的暗號，走進地下二樓。真正的小晴打來時，彥廷已從身後抽走手機；鐵門落下後，他把 SIM 卡拔掉，將你拖進停車場後方沒有窗戶的儲藏室。\n\n他沒有打算放你離開。他逼你解鎖手機、刪除雲端備份，並用你的帳號回覆小晴：「我只是想一個人靜一靜。」你每拒絕一次，他就收走一樣東西：外套、鞋子、鑰匙，最後連房間裡唯一能辨認時間的電子鐘也被關掉。\n\n小晴很快察覺那不是你。對方沒有使用你們平常的標點，也說錯了只有你們知道的集合位置；更重要的是，她手上還留著那段差一個字的假暗號錄音。她立刻報案，並把聊天時間、地下二樓入口與彥廷車牌一併交給警方。\n\n三十六小時後，警方從停車場鏡頭確認他的車始終沒有離開，再利用門禁紀錄找到一間以他人名義租用的儲藏室。鐵門被打開時，彥廷仍坐在門邊拿著你的手機，試圖說這只是情侶吵架。複製鑰匙、追蹤程式、你的行程表，以及尚未刪乾淨的錄音，讓他當場被逮捕。\n\n你被送醫後搬離原本住處，也換了工作路線。彥廷沒有再傳來訊息；他的裝置被扣押，法院也禁止他與你接觸。真正留下來的不是他的追蹤，而是電梯抵達地下樓層時，那聲鐵門落下的回音。\n\n幾個月後，你第一次獨自走進新的停車場。你仍會先確認出口，但這次，等在出口外的是小晴，而不是他。"
       },
       quietRoom: {
         tone: "bad",
@@ -1509,9 +1509,12 @@
 
     function getAudioContext(){
       try{
-        audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
+        if(!audioCtx || audioCtx.state==='closed'){
+          audioCtx=new (window.AudioContext || window.webkitAudioContext)();
+        }
         return audioCtx;
       }catch(error){
+        audioCtx=null;
         return null;
       }
     }
@@ -1840,7 +1843,6 @@
       return !bestTaiwanMaleVoice();
     }
     const bundledYentingObjectUrls=new Map();
-    const preloadedYentingAudio=new Map();
     const failedYentingAudioSources=new Set();
     const resolvedExternalYentingAudio=new Map();
     const externalYentingAudio={
@@ -1875,6 +1877,8 @@
     const sharedYentingAudio=new Audio();
     sharedYentingAudio.preload='auto';
     sharedYentingAudio.setAttribute('playsinline','');
+    let bundledPlaybackSerial=0;
+    let activeBundledYentingCancel=null;
 
     async function ensureAudioReady(){
       if(state.muted) return false;
@@ -1945,21 +1949,27 @@
       });
     }
 
-    function stopBundledYentingAudio(){
-      if(activeBundledYentingAudio){
-        try{
-          activeBundledYentingAudio.pause();
-          activeBundledYentingAudio.currentTime=0;
-          activeBundledYentingAudio.onended=null;
-          activeBundledYentingAudio.onerror=null;
-        }catch(error){}
-        activeBundledYentingAudio=null;
-      }
+    function stopBundledYentingAudio({releaseSource=false}={}){
+      const cancel=activeBundledYentingCancel;
+      activeBundledYentingCancel=null;
+      bundledPlaybackSerial++;
 
       try{
+        sharedYentingAudio.onended=null;
+        sharedYentingAudio.onerror=null;
         sharedYentingAudio.pause();
         sharedYentingAudio.currentTime=0;
+
+        if(releaseSource){
+          sharedYentingAudio.removeAttribute('src');
+          sharedYentingAudio.load();
+        }
       }catch(error){}
+
+      activeBundledYentingAudio=null;
+
+      // Resolve any call flow that was waiting for the interrupted clip.
+      try{ cancel?.(); }catch(error){}
     }
 
     function bundledAudioObjectUrl(key,source){
@@ -1989,21 +1999,18 @@
 
     function prepareYentingAudio(key,source){
       if(!source) return null;
-      const cacheKey=`${key}|${source}`;
 
-      if(preloadedYentingAudio.has(cacheKey)){
-        return preloadedYentingAudio.get(cacheKey);
+      // Embedded clips are already part of the HTML. Creating their Blob URLs
+      // is enough; keeping 25 extra Audio elements wastes mobile resources.
+      if(source.startsWith('data:')){
+        bundledAudioObjectUrl(`embedded:${key}`,source);
+        return null;
       }
 
       const audio=new Audio();
-      audio.preload='auto';
+      audio.preload='metadata';
       audio.setAttribute('playsinline','');
-      audio.src=bundledAudioObjectUrl(cacheKey,source);
-      audio.addEventListener('error',()=>{
-        failedYentingAudioSources.add(source);
-      });
-      try{ audio.load(); }catch(error){}
-      preloadedYentingAudio.set(cacheKey,audio);
+      audio.src=source;
       return audio;
     }
 
@@ -2011,27 +2018,52 @@
       const sources=(externalYentingAudio[key] || [])
         .filter(source=>/\.mp3$/i.test(source))
         .slice(0,2);
+
       if(index>=sources.length || resolvedExternalYentingAudio.has(key)) return;
 
       const source=sources[index];
       const audio=prepareYentingAudio(key,source);
       if(!audio) return;
 
+      let settled=false;
+
+      const cleanup=()=>{
+        audio.onloadeddata=null;
+        audio.oncanplaythrough=null;
+        audio.onerror=null;
+        try{
+          audio.pause();
+          audio.removeAttribute('src');
+          audio.load();
+        }catch(error){}
+      };
+
       const accept=()=>{
+        if(settled) return;
+        settled=true;
         if(!resolvedExternalYentingAudio.has(key)){
           resolvedExternalYentingAudio.set(key,source);
         }
+        cleanup();
       };
+
       const reject=()=>{
+        if(settled) return;
+        settled=true;
         failedYentingAudioSources.add(source);
+        cleanup();
         preloadExternalYentingKey(key,index+1);
       };
 
-      if(audio.readyState>=2){
-        accept();
-      }else{
-        audio.addEventListener('loadeddata',accept,{once:true});
-        audio.addEventListener('error',reject,{once:true});
+      audio.onloadeddata=accept;
+      audio.oncanplaythrough=accept;
+      audio.onerror=reject;
+
+      try{
+        audio.load();
+        if(audio.readyState>=2) accept();
+      }catch(error){
+        reject();
       }
     }
 
@@ -2039,7 +2071,9 @@
       Object.keys(externalYentingAudio).forEach(key=>{
         preloadExternalYentingKey(key);
         const embedded=bundledYentingAudio[key];
-        if(embedded) prepareYentingAudio(key,embedded);
+        if(embedded){
+          bundledAudioObjectUrl(`embedded:${key}`,embedded);
+        }
       });
     }
 
@@ -2066,14 +2100,12 @@
       const key=requestedKey;
       const embeddedSource=bundledYentingAudio[key];
       const resolvedExternal=resolvedExternalYentingAudio.get(key);
-      const externalSources=externalYentingAudio[key] || [];
-      // Do not try every possible missing filename during playback.
-      // A custom file is used only after preload confirms it exists;
-      // otherwise the embedded clip starts immediately.
+
       const candidates=[resolvedExternal,embeddedSource]
         .filter(Boolean)
         .filter((source,index,list)=>list.indexOf(source)===index)
-        .filter(source=>!failedYentingAudioSources.has(source));
+        // A transient pause/AbortError must never blacklist an embedded clip.
+        .filter(source=>source.startsWith('data:') || !failedYentingAudioSources.has(source));
 
       if(!candidates.length){
         onerror();
@@ -2081,20 +2113,42 @@
       }
 
       stopBundledYentingAudio();
+      const playbackId=++bundledPlaybackSerial;
       let candidateIndex=0;
       let finished=false;
+      let startWatchdog=null;
+
+      const isCurrent=()=>(
+        playbackId===bundledPlaybackSerial &&
+        activeBundledYentingAudio===sharedYentingAudio
+      );
+
+      const clearWatchdog=()=>{
+        if(startWatchdog){
+          clearTimeout(startWatchdog);
+          startWatchdog=null;
+        }
+      };
 
       const finish=(failed=false)=>{
         if(finished) return;
         finished=true;
-        if(activeBundledYentingAudio){
+        clearWatchdog();
+
+        if(playbackId===bundledPlaybackSerial){
           activeBundledYentingAudio=null;
+          activeBundledYentingCancel=null;
         }
+
         failed ? onerror() : onend();
       };
 
+      // Called by stopBundledYentingAudio when another clip or a restart interrupts us.
+      activeBundledYentingCancel=()=>finish(false);
+
       const tryNext=()=>{
-        if(finished) return;
+        if(finished || playbackId!==bundledPlaybackSerial) return;
+
         if(candidateIndex>=candidates.length){
           finish(true);
           return;
@@ -2102,15 +2156,17 @@
 
         const source=candidates[candidateIndex++];
         const isEmbedded=source.startsWith('data:');
+        const cacheKey=isEmbedded ? `embedded:${key}` : `external:${source}`;
         const audio=sharedYentingAudio;
+        let started=false;
 
         activeBundledYentingAudio=audio;
 
         try{
-          audio.pause();
           audio.onended=null;
           audio.onerror=null;
-          audio.src=bundledAudioObjectUrl(`${key}|${source}`,source);
+          audio.pause();
+          audio.src=bundledAudioObjectUrl(cacheKey,source);
           audio.currentTime=0;
           audio.muted=false;
           audio.volume=volume;
@@ -2119,32 +2175,75 @@
           audio.preservesPitch=true;
           audio.webkitPreservesPitch=true;
 
-          audio.onended=()=>finish(false);
+          audio.onplaying=()=>{
+            if(!isCurrent()) return;
+            started=true;
+            clearWatchdog();
+          };
+
+          audio.onended=()=>{
+            if(!isCurrent()) return;
+            finish(false);
+          };
+
           audio.onerror=()=>{
-            failedYentingAudioSources.add(source);
-            if(activeBundledYentingAudio===audio){
-              activeBundledYentingAudio=null;
+            if(!isCurrent()) return;
+
+            // Only a real external-file load/decode failure is persistent.
+            if(!isEmbedded){
+              failedYentingAudioSources.add(source);
+              if(resolvedExternalYentingAudio.get(key)===source){
+                resolvedExternalYentingAudio.delete(key);
+              }
             }
+
             tryNext();
           };
 
           audio.load();
           const result=audio.play();
 
+          startWatchdog=setTimeout(()=>{
+            if(!isCurrent() || finished || started) return;
+
+            // Some mobile browsers resolve play() without advancing.
+            // Reload once by trying the next source; embedded remains reusable.
+            tryNext();
+          },1800);
+
           if(result?.catch){
-            result.catch(()=>{
-              failedYentingAudioSources.add(source);
-              if(activeBundledYentingAudio===audio){
-                activeBundledYentingAudio=null;
+            result.catch(error=>{
+              if(!isCurrent() || finished) return;
+              clearWatchdog();
+
+              // AbortError is expected when the player is intentionally reused.
+              // It must not poison this or any future play.
+              if(error?.name==='AbortError'){
+                return;
               }
+
+              // NotSupportedError can indicate a genuinely invalid external file.
+              if(!isEmbedded && error?.name==='NotSupportedError'){
+                failedYentingAudioSources.add(source);
+                if(resolvedExternalYentingAudio.get(key)===source){
+                  resolvedExternalYentingAudio.delete(key);
+                }
+              }
+
               tryNext();
             });
           }
         }catch(error){
-          failedYentingAudioSources.add(source);
-          if(activeBundledYentingAudio===audio){
-            activeBundledYentingAudio=null;
+          if(!isCurrent() || finished) return;
+          clearWatchdog();
+
+          if(!isEmbedded && error?.name==='NotSupportedError'){
+            failedYentingAudioSources.add(source);
+            if(resolvedExternalYentingAudio.get(key)===source){
+              resolvedExternalYentingAudio.delete(key);
+            }
           }
+
           tryNext();
         }
       };
@@ -4592,11 +4691,14 @@
       }
 
       if(key==='wrongDoor'){
-        await endingMessage('xiaoqing','{name}，妳在哪裡？我一直在對街。',{creepy:true});
-        await endingMessage('yenting','不要回她。她又在破壞我們。',{creepy:true});
-        await timeJump('兩個月後・14:20');
-        addSystem('彥廷更新了大頭貼。照片裡，他摟著另一個女生。',true,'yenting');
-        await endingMessage('yenting','她不像妳，她很聽話。',{creepy:true});
+        await endingMessage('xiaoqing','{name}，妳在哪裡？我一直在對街。那個暗號不是妳會說的。',{creepy:true});
+        await endingMessage('yenting','不要回她。把手機解鎖。',{creepy:true});
+        await endingMessage('xiaoqing','回覆我的人不是妳。我現在就報警。',{creepy:true});
+        await timeJump('三十六小時後・06:40');
+        addSystem('警方依照停車場鏡頭與地下室門禁紀錄，找到一間上鎖的儲藏室。',true,'xiaoqing');
+        await endingMessage('xiaoqing','他已經被帶走了。醫護人員就在門外，妳先不要自己站起來。');
+        await timeJump('三個月後・15:10');
+        await endingMessage('xiaoqing','明天是第一次出庭。我會陪妳去，也會陪妳走地下停車場。');
         return;
       }
 
@@ -4942,8 +5044,10 @@
       state.flags={quickHangups:0,idleNudgeSerial:0};
       state.ended=false;
       setGameTime(21,47);
+      voicePlaybackToken++;
       if('speechSynthesis' in window) window.speechSynthesis.cancel();
-      stopBundledYentingAudio();
+      stopBundledYentingAudio({releaseSource:true});
+      audioReadyPromise=null;
       hideCallOverlay();
       Object.values(chats).forEach(thread=>{
         thread.innerHTML='';
@@ -5045,6 +5149,11 @@
           if(button) button.textContent='▶';
         });
       }
+
+      if(!state.muted){
+        ensureAudioReady().catch(()=>{});
+      }
+
       soundBtn.textContent=state.muted?'🔇':'🔊';
     });
 
