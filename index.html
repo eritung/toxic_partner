@@ -1,4 +1,4 @@
-<!-- BUILD: v1.17.2 -->
+<!-- BUILD: v1.17.4 -->
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -435,6 +435,64 @@
       transition:.15s ease;
       box-shadow:0 1px 3px rgba(0,0,0,.06);
     }
+
+    .choice-area.ending-gate-mode{
+      background:rgba(22,23,27,.97);
+      border-top-color:#4b1019;
+      box-shadow:0 -14px 32px rgba(40,0,7,.28);
+    }
+
+    .choice-area.ending-gate-mode .choice-title{
+      color:#f0cbd0;
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:.08em;
+    }
+
+    .choice-btn.ending-gate-btn{
+      text-align:center;
+      font-weight:800;
+      letter-spacing:.04em;
+      color:#4a000a;
+      border-color:#b46a74;
+      background:#fff7f8;
+      transition:opacity .28s ease,transform .28s ease,filter .28s ease,background .2s ease;
+    }
+
+    .choice-btn.ending-gate-btn:hover{border-color:#b70018}
+
+    .choice-btn.ending-gate-btn.forced{
+      color:#fff;
+      background:#850014;
+      border-color:#b70018;
+      box-shadow:0 0 18px rgba(183,0,24,.24);
+    }
+
+    .choice-btn.ending-gate-btn.shake{
+      animation:endingGateShake .26s linear 2;
+    }
+
+    .choice-btn.ending-gate-btn.vanish{
+      opacity:0;
+      transform:scale(.9);
+      filter:blur(5px);
+      pointer-events:none;
+    }
+
+    .choice-btn.ending-gate-btn.only-choice{
+      animation:endingGatePulse 1.05s ease-in-out infinite;
+    }
+
+    @keyframes endingGateShake{
+      0%,100%{transform:translateX(0)}
+      25%{transform:translateX(-4px)}
+      75%{transform:translateX(4px)}
+    }
+
+    @keyframes endingGatePulse{
+      50%{box-shadow:0 0 0 5px rgba(183,0,24,.13),0 0 24px rgba(183,0,24,.3)}
+    }
+
     .choice-btn:hover{border-color:var(--line);transform:translateY(-1px)}
     .choice-btn:active{transform:translateY(1px)}
     .choice-btn.danger{border-color:#d8a8ae;color:#71000e}
@@ -592,10 +650,11 @@
     .tiny{font-size:11px!important;color:#8b929a!important;margin-top:12px!important}
 
     .experience-note{
-      margin:10px 4px 0;
-      font-size:11px;
-      line-height:1.55;
-      color:#7b838c;
+      margin:18px 8px 0!important;
+      font-size:9px!important;
+      line-height:1.45!important;
+      color:#8b929a!important;
+      letter-spacing:.01em;
     }
 
     #endingOverlay{
@@ -1123,7 +1182,7 @@
         <p>他總是記得你說過的每件事。<br>直到有一天，他開始知道你沒說過的事。</p>
         <input id="nameInput" class="name-input" maxlength="20" placeholder="輸入你的名字" autocomplete="off" />
         <button id="startBtn" class="primary">進入聊天室</button>
-        <p class="experience-note">🎧 建議使用電腦並開啟聲音，以獲得較完整的語音與通話體驗。</p>
+        <p class="experience-note">🎧 使用電腦開啟，聲音與通話體驗較完整。</p>
       </div>
     </div>
 
@@ -1174,7 +1233,7 @@
   </main>
 
   <script>
-    const GAME_VERSION = 'v1.17.2';
+    const GAME_VERSION = 'v1.17.4';
 
     const chats = {
       yenting: document.getElementById('chatYenting'),
@@ -1238,19 +1297,19 @@
 
     const endings = {
       free: {
-        tone: 'good',
-        title: '成功甩掉他',
-        text: '你讓定位器搭著空電梯往上，自己則從消防梯一路下樓。\n\n彥廷追著錯誤訊號往樓上走，真正的小晴始終待在對街便利商店。你們在側門碰面後沒有停留，也沒有再照任何陌生訊息改變方向。\n\n隔天，你更換所有帳號、撤銷裝置登入，並把留下的紀錄交給可信任的人保管。\n\n最後一段語音停在未播放。',
+        tone: "good",
+        title: "成功甩掉他",
+        text: "你讓定位器搭著空電梯往上，自己則從消防梯一路下樓。\n\n彥廷追到十樓時，真正的小晴已在側門接到你。你們離開大樓後才重新開機，定位器的移動紀錄也完整保留下來。\n\n隔天，你更換帳號、撤銷陌生裝置登入，並將定位器交給調查人員。\n\n最後一段語音停在未播放。不是因為你來不及，而是因為你終於不需要再聽。",
       },
       protected: {
-        tone: 'good',
-        title: '另一個出口',
-        text: '定位訊號跟著空電梯往上，你則沿消防梯往下。\n\n彥廷被錯誤訊號引到樓上時，小晴已經在側門外接到你。你們先離開大樓，直到走進便利商店最亮的區域才重新確認彼此安全。\n\n你保住了今晚，也留下足以證明追蹤與入侵的紀錄。只是沒有人能確定，他是否真的停止查看。',
+        tone: "good",
+        title: "側門之外",
+        text: "定位訊號跟著空電梯往上，你則沿消防梯一路往下。\n\n彥廷被引到樓上時，小晴在側門接到你。你們沒有停下來確認他在哪，而是直接走進便利商店、人群與監視器能同時看見的地方。\n\n你安全離開，卻沒有留下足以立刻限制他的完整證據。幾週後，小晴看見他正替另一個女生記住下班時間。\n\n這不是結束，只是你不再站在他下一步會抵達的位置。",
       },
       frontEscape: {
-        tone: 'good',
-        title: '穿過大廳',
-        text: '你關閉手機，沒有再回覆任何訊息，直接穿過一樓明亮的大廳。\n\n小晴站在斑馬線另一側。直到你走到她身邊，她才拿出另一支手機，確認備份的登入紀錄、定位器照片與聊天室截圖都還在。\n\n彥廷沒有在正門攔到你。隔天，你們才一起處理帳號、門鎖與後續證據。',
+        tone: "good",
+        title: "穿過大廳",
+        text: "你關閉手機，沒有再回覆任何訊息，直接走進一樓最明亮的大廳。\n\n小晴站在斑馬線另一側。你們沒有立刻回家，而是帶著定位器照片、登入紀錄與聊天室備份，先去了仍有值班人員的地方。\n\n隔天，大樓調出彥廷在非訪客時段進出的畫面。你不必再單獨解釋那些「巧合」，也不必用下一次危險證明這一次是真的。",
       },
       watched: {
         tone: 'bad',
@@ -1293,34 +1352,34 @@
         text: '你反鎖會議室，想等小晴上樓，或等外面徹底安靜後再離開。\n\n門外的腳步聲消失，視訊螢幕卻自行亮起。畫面中是你坐在椅子上的背影。\n\n喇叭傳出低低的一句：「找到妳了。」\n\n你衝向門口，才發現電子鎖已被遠端切換成禁止開啟。燈一盞一盞熄滅，手機只剩下彥廷的通話畫面。',
       },
       baited: {
-        tone: 'good',
-        title: '空房間',
-        text: '你讓八樓留下足以讓他追上去的假象：可能是一段停在門後的腳步聲、一枚移動中的定位器，或一盞突然亮起的會議室燈。\n\n彥廷一路追著那個假象上樓。當他推開空房間的門時，你已經從另一側樓梯走到三樓，正往側門離開。\n\n手機最後亮了一次：\n「妳騙我。」\n\n你刪掉對話，沒有回答。'
+        tone: "good",
+        title: "八樓沒有你",
+        text: "你讓八樓留下足以吸引他的假象，自己則沿另一側樓梯往下。\n\n彥廷推開會議室時，只看見空房間與仍在運作的誘餌。大樓門禁、電梯與走廊鏡頭完整記錄了他如何追著你的假位置闖入。\n\n你在三樓和小晴會合，從側門離開。這一次，被留下來的不是你，而是他的行動紀錄。\n\n隔天，他開始在社群上說自己被欺騙；監視器畫面卻比任何截圖都更完整。",
       },
       offline: {
-        tone: 'neutral',
-        title: '九分鐘',
-        text: '你把手機和定位器留在辦公桌上，關掉電腦，從消防梯走出去。\n\n接下來九分鐘，沒有帳號、定位或鏡頭能告訴他你在哪裡。\n\n小晴在對街看見你時，你第一次覺得夜裡的街道很亮。\n\n隔天，所有密碼都被更換。那支手機再也沒有開機。'
+        tone: "neutral",
+        title: "九分鐘",
+        text: "你把手機和定位器留在辦公桌上，從消防梯離開。\n\n接下來九分鐘，所有訊息都只抵達一張空椅子。彥廷能看見裝置仍在公司，卻無法知道你已經穿過側門、走到小晴面前。\n\n那支手機後來被封存，沒有再次開機。兩週後，新手機收到一段兩秒鐘的空白語音。\n\n他沒有找到你離開的路，卻仍在確認這個號碼是否還能抵達你。",
       },
       silentSOS: {
-        tone: 'good',
-        title: '靜音模式',
-        text: '你沒有在聊天室輸入任何求救字眼。\n\n手機維持原本的畫面，緊急位置與門外錄音卻已經在背景送出。小晴沒有回覆，只在另一端完成你們約定的事。\n\n門外的鑰匙插進鎖孔時，樓梯間同時傳來數個人的腳步聲。\n\n彥廷沒有成功進門。但他抬頭看向走廊鏡頭時，像是已經知道是誰報了警。',
+        tone: "good",
+        title: "門外的現行犯",
+        text: "你沒有在聊天室輸入任何求救字眼，手機畫面也始終停在原本的對話。\n\n緊急位置與門外錄音早已在背景送出。彥廷把複製鑰匙插進鎖孔時，樓梯間同時傳來警方表明身分的聲音。\n\n他被制伏時，手機還開著定位器後台；口袋裡除了你的備用鑰匙，還有另一枚尚未送出的追蹤器。\n\n這一次，門沒有被打開。錄音、鑰匙與定位紀錄，也不再只是你單方面的說法。",
       },
       detectedSOS: {
-        tone: 'bad',
-        title: '正在輸入',
-        text: '你在小晴的聊天室打出「幫我報警」。\n\n訊息剛送出，彥廷便傳來一張「正在輸入」的截圖。下一秒，備用鑰匙插進鎖孔。\n\n他拿走手機，把窗戶扣上安全鎖，說你最近情緒太不穩定，需要留在房間裡休息。\n\n門從外面關上前，他只問：「妳為什麼總是要找別人來對付我？」',
+        tone: "neutral",
+        title: "空掉的走廊",
+        text: "你在小晴的聊天室送出「幫我報警」。幾乎同一時間，彥廷傳來一張你正在輸入的截圖。\n\n走廊燈突然熄滅。等警方抵達時，門外只剩一把沒有插到底的鑰匙，樓梯間也沒有人。\n\n十二天後，管委會拆下故障的煙霧偵測器，才發現裡面藏著一枚極小的鏡頭。最後連線時間，正是你送出求救訊息的那一晚。\n\n他沒有再直接聯絡你，卻也沒有真正從視線裡消失。",
       },
       revealedSOS: {
-        tone: 'bad',
-        title: '說出口的求救',
-        text: '位置與錄音已經在背景送出，但你忍不住告訴他：「我已經報警了。」\n\n門外安靜了一秒。接著，鑰匙更快地轉進鎖孔。\n\n他不再回訊息，也不再試著解釋。支援趕到以前，手機先被奪走，背景錄音停在門被推開的聲音。\n\n你成功送出了求救，卻也讓他知道自己只剩多少時間。',
+        tone: "good",
+        title: "剩下的三十秒",
+        text: "位置與門外錄音已經在背景送出，但你忍不住告訴他：「我已經報警了。」\n\n門外安靜了一秒。接著，他開始用力轉動複製鑰匙，想在支援抵達前進門。\n\n內門被撞得變形，鎖卻沒有撐開。警方在樓梯轉角攔下他時，他手上仍握著你的鑰匙，手機畫面則停在你住處的即時位置。\n\n你提前說破了求救，讓最後半分鐘變得危險；也讓他來不及把證據收起來。",
       },
       doorBreach: {
-        tone: 'bad',
-        title: '太大聲了',
-        text: '你直接撥出求救電話。\n\n安靜的房間裡，撥號聲比想像中更清楚。電話接通以前，門鎖先發出喀的一聲。\n\n最後留在通話紀錄裡的，只有一通長度六秒的電話。\n\n幾天後，鄰居偶爾聽見房內有人走動，卻再也沒看見你獨自出門。彥廷說你只是需要一段時間，不想見任何人。',
+        tone: "good",
+        title: "通話沒有掛斷",
+        text: "你直接撥出求救電話。安靜的房間裡，撥號聲清楚得刺耳。\n\n彥廷聽見後開始撞門，但通話已經接通。接線員沒有要求你繼續說話，只讓線路保持開啟，完整錄下門鎖、威脅與撞擊聲。\n\n警方在他準備離開樓層時將他攔下。你的門框受損，家也必須暫時搬離；但那通沒有掛斷的電話，讓他無法再把一切說成誤會。",
       },
       doorTaunt: {
         tone: 'bad',
@@ -1745,6 +1804,9 @@
       return !bestTaiwanMaleVoice();
     }
     const bundledYentingObjectUrls=new Map();
+    const preloadedYentingAudio=new Map();
+    const failedYentingAudioSources=new Set();
+    const resolvedExternalYentingAudio=new Map();
     const externalYentingAudio={
       "寶貝，再掛一次。我現在就去你家。":["voices/01.mp3", "voices/01-hangup-warning.mp3", "voices/01.wav", "voices/01-hangup-warning.wav", "voices/01.m4a", "voices/01-hangup-warning.m4a"],
       "寶貝，開門。我沒有要傷害你，我只是想把事情說清楚。":["voices/02.mp3", "voices/02-open-door.mp3", "voices/02.wav", "voices/02-open-door.wav", "voices/02.m4a", "voices/02-open-door.m4a"],
@@ -1833,18 +1895,91 @@
       }
     }
 
+
+    function prepareYentingAudio(key,source){
+      if(!source) return null;
+      const cacheKey=`${key}|${source}`;
+
+      if(preloadedYentingAudio.has(cacheKey)){
+        return preloadedYentingAudio.get(cacheKey);
+      }
+
+      const audio=new Audio();
+      audio.preload='auto';
+      audio.setAttribute('playsinline','');
+      audio.src=bundledAudioObjectUrl(cacheKey,source);
+      audio.addEventListener('error',()=>{
+        failedYentingAudioSources.add(source);
+      });
+      try{ audio.load(); }catch(error){}
+      preloadedYentingAudio.set(cacheKey,audio);
+      return audio;
+    }
+
+    function preloadExternalYentingKey(key,index=0){
+      const sources=(externalYentingAudio[key] || [])
+        .filter(source=>/\.mp3$/i.test(source))
+        .slice(0,2);
+      if(index>=sources.length || resolvedExternalYentingAudio.has(key)) return;
+
+      const source=sources[index];
+      const audio=prepareYentingAudio(key,source);
+      if(!audio) return;
+
+      const accept=()=>{
+        if(!resolvedExternalYentingAudio.has(key)){
+          resolvedExternalYentingAudio.set(key,source);
+        }
+      };
+      const reject=()=>{
+        failedYentingAudioSources.add(source);
+        preloadExternalYentingKey(key,index+1);
+      };
+
+      if(audio.readyState>=2){
+        accept();
+      }else{
+        audio.addEventListener('loadeddata',accept,{once:true});
+        audio.addEventListener('error',reject,{once:true});
+      }
+    }
+
+    function preloadYentingAudioAssets(){
+      Object.keys(externalYentingAudio).forEach(key=>{
+        preloadExternalYentingKey(key);
+        const embedded=bundledYentingAudio[key];
+        if(embedded) prepareYentingAudio(key,embedded);
+      });
+    }
+
+    if(document.readyState==='loading'){
+      document.addEventListener('DOMContentLoaded',preloadYentingAudioAssets,{once:true});
+    }else{
+      preloadYentingAudioAssets();
+    }
+
     function playBundledYentingVoice(text,{
       volume=.96,
       onend=()=>{},
       onerror=()=>{}
     }={}){
       const requestedKey=canonicalYentingAudioText(text);
-      const key=bundledYentingAudio[requestedKey]
-        ? requestedKey
-        : '寶貝，接電話。';
+      const hasKnownAudio=Boolean(
+        bundledYentingAudio[requestedKey] || externalYentingAudio[requestedKey]
+      );
+
+      if(!hasKnownAudio){
+        return false;
+      }
+
+      const key=requestedKey;
       const embeddedSource=bundledYentingAudio[key];
+      const resolvedExternal=resolvedExternalYentingAudio.get(key);
       const externalSources=externalYentingAudio[key] || [];
-      const candidates=[...externalSources,embeddedSource].filter(Boolean);
+      const candidates=[resolvedExternal,...externalSources,embeddedSource]
+        .filter(Boolean)
+        .filter((source,index,list)=>list.indexOf(source)===index)
+        .filter(source=>!failedYentingAudioSources.has(source));
 
       if(!candidates.length){
         onerror();
@@ -1873,16 +2008,21 @@
 
         const source=candidates[candidateIndex++];
         const isEmbedded=source.startsWith('data:');
-        const audio=new Audio();
+        const audio=prepareYentingAudio(key,source);
+
+        if(!audio){
+          tryNext();
+          return;
+        }
+
         activeBundledYentingAudio=audio;
-        audio.preload='auto';
+        audio.pause();
+        try{ audio.currentTime=0; }catch(error){}
         audio.volume=volume;
         audio.playbackRate=isEmbedded ? 1.04 : 1;
         audio.defaultPlaybackRate=isEmbedded ? 1.04 : 1;
         audio.preservesPitch=true;
         audio.webkitPreservesPitch=true;
-        audio.setAttribute('playsinline','');
-        audio.src=bundledAudioObjectUrl(`${key}:${candidateIndex}`,source);
 
         audio.onended=()=>finish(false);
         audio.onerror=()=>{
@@ -2721,7 +2861,14 @@
       ];
     }
 
-    async function startChoiceIdleSpam(contact,token){
+    const IDLE_TIMING={
+      nudgeOne:window.__IDLE_TIMING__?.nudgeOne ?? 9000,
+      nudgeTwo:window.__IDLE_TIMING__?.nudgeTwo ?? 18000,
+      firstSpam:window.__IDLE_TIMING__?.firstSpam ?? 20000,
+      repeatSpam:window.__IDLE_TIMING__?.repeatSpam ?? 20000
+    };
+
+    async function startChoiceIdleSpam(contact,token,cycle=1){
       if(contact!=='yenting'){
         if(
           token===choiceIdleToken &&
@@ -2795,7 +2942,10 @@
       const startedAt=Date.now();
       let sentNine=false;
       let sentEighteen=false;
-      let spamStarted=false;
+      let spamInFlight=false;
+      let spamCycle=0;
+      let nextSpamAt=IDLE_TIMING.firstSpam;
+      let xiaoqingReminderSent=false;
 
       const choiceStillWaiting=()=>{
         return (
@@ -2823,19 +2973,31 @@
         if(!choiceStillWaiting()) return;
         const elapsed=Date.now()-startedAt;
 
-        if(elapsed>=9000 && !sentNine){
+        if(elapsed>=IDLE_TIMING.nudgeOne && !sentNine){
           sentNine=true;
           sendNudge(1,9);
         }
 
-        if(elapsed>=18000 && !sentEighteen){
+        if(elapsed>=IDLE_TIMING.nudgeTwo && !sentEighteen){
           sentEighteen=true;
           sendNudge(2,18);
         }
 
-        if(elapsed>=20000 && !spamStarted){
-          spamStarted=true;
-          startChoiceIdleSpam(contact,token);
+        if(contact!=='yenting'){
+          if(elapsed>=IDLE_TIMING.firstSpam && !xiaoqingReminderSent){
+            xiaoqingReminderSent=true;
+            startChoiceIdleSpam(contact,token,1);
+          }
+          return;
+        }
+
+        if(elapsed>=nextSpamAt && !spamInFlight){
+          spamInFlight=true;
+          spamCycle+=1;
+          startChoiceIdleSpam(contact,token,spamCycle).finally(()=>{
+            spamInFlight=false;
+            nextSpamAt=(Date.now()-startedAt)+IDLE_TIMING.repeatSpam;
+          });
         }
       };
 
@@ -4138,37 +4300,39 @@
 
     async function playEndingSequence(key){
       if(key==='silentSOS'){
-        await endingMessage('xiaoqing','{name}，先不要開門。我就在樓下，等門外完全安靜再出來。');
-        addMessage('mine','我聽不到他的腳步了。',{contact:'xiaoqing'});
-        await endingMessage('xiaoqing','好。門外的錄音和來電紀錄我都備份了。');
-        await timeJump('九天後・20:31');
-        addSystem('陌生帳號追蹤了你。帳號名稱只有一個句點。',true,'yenting');
-        await waitForChat('yenting');
-        await endingMessage('yenting','那天妳報警的時候，聲音有發抖。',{creepy:true});
+        await endingMessage('xiaoqing','{name}，不要開門。警方已經到妳那層。');
+        addSystem('樓梯間傳來警方表明身分的聲音。門外的人被制伏。',true,'yenting');
+        await endingMessage('xiaoqing','複製鑰匙、定位畫面和門外錄音都留下來了。妳現在安全。');
+        await timeJump('十一天後・14:20');
+        addSystem('法院通知：緊急保護令已核發。',false,'xiaoqing');
+        await endingMessage('xiaoqing','調查人員還在他的手機裡找到其他追蹤紀錄。這次不只有妳的證詞。');
         return;
       }
 
       if(key==='detectedSOS'){
-        await endingMessage('xiaoqing','不要再打字。我已經在路上。',{creepy:true});
-        await endingMessage('yenting','她來不及。',{creepy:true});
-        await timeJump('兩週後・03:12');
-        addSystem('你的帳號刪除了所有與小晴的對話。',true,'xiaoqing');
+        await endingMessage('xiaoqing','訊息收到了。不要再回任何人，我已經通知警方。',{creepy:true});
+        addSystem('走廊燈熄滅。幾分鐘後，警方抵達時門外已經沒有人。',true,'yenting');
+        await timeJump('十二天後・16:42');
+        await endingMessage('xiaoqing','管委會在妳門外的煙霧偵測器裡找到一枚鏡頭。',{creepy:true});
+        addSystem('裝置最後連線時間：報警當晚。',true,'xiaoqing');
         return;
       }
 
       if(key==='revealedSOS'){
         await endingMessage('yenting','妳不該告訴我。',{creepy:true});
-        await endingMessage('xiaoqing','位置還在傳送。撐住，我們已經到樓下。',{creepy:true});
-        await timeJump('兩週後・03:12');
-        addSystem('背景錄音的最後六秒只剩門板碰撞聲。',true,'xiaoqing');
+        await endingMessage('xiaoqing','位置還在傳送。不要開內門，警方已經進大樓。',{creepy:true});
+        addSystem('樓梯轉角傳來喝止聲。彥廷被攔下時，手裡仍握著你的鑰匙。',true,'yenting');
+        await timeJump('兩週後・10:05');
+        addSystem('案件附件新增：門鎖損壞照片、即時定位畫面、複製鑰匙。',false,'xiaoqing');
         return;
       }
 
       if(key==='doorBreach'){
-        await endingMessage('xiaoqing','{name}？電話怎麼斷了？',{creepy:true});
-        await endingMessage('yenting','不要一直找她。她現在需要休息。',{creepy:true});
-        await timeJump('一個月後・18:06');
-        addSystem('彥廷上傳了一張新照片。背景是你家的窗簾。',true,'yenting');
+        addSystem('求救電話已接通。接線員請你不要掛斷，也不必繼續說話。',false,'xiaoqing');
+        addSystem('撞門聲、威脅與腳步聲持續留在線路裡。',true,'yenting');
+        await endingMessage('xiaoqing','警方在樓梯口攔到他了。妳先不要碰門。');
+        await timeJump('七天後・15:30');
+        addSystem('報案錄音已完成保存，門框與鎖具列入證物。',false,'xiaoqing');
         return;
       }
 
@@ -4323,53 +4487,204 @@
     }
 
 
+    const endingGateConfigs={
+      watched:{
+        prompt:'會議室的門在身後關上了。',
+        initial:['立刻離開','躲到桌子下面','打給小晴'],
+        forced:'轉身'
+      },
+      trapped:{
+        prompt:'門鎖正在慢慢轉動。',
+        initial:['反鎖房門','保持安靜','打給小晴'],
+        forced:'不要反抗'
+      },
+      officeCaught:{
+        prompt:'電梯停在你的樓層。',
+        initial:['走另一側樓梯','關掉辦公室的燈','躲進茶水間'],
+        forced:'等他'
+      },
+      usualRoute:{
+        prompt:'那台熟悉的車停在前方。',
+        initial:['改走大路','進便利商店','回到公司'],
+        forced:'回頭'
+      },
+      gaslit:{
+        prompt:'他正在等你的回答。',
+        initial:['封鎖他','相信自己的感覺','找小晴確認'],
+        forced:'是我想太多'
+      },
+      wrongDoor:{
+        prompt:'地下室的鐵門正在下降。',
+        initial:['按電梯','往樓梯跑','打給小晴'],
+        forced:'往前走'
+      },
+      quietRoom:{
+        prompt:'會議室的螢幕亮了。',
+        initial:['解除電子鎖','關閉螢幕','大聲求救'],
+        forced:'不要出聲'
+      },
+      doorTaunt:{
+        prompt:'門外突然沒有聲音了。',
+        initial:['離開門邊','保持安靜','打給小晴'],
+        forced:'不要出聲'
+      },
+      openedDoor:{
+        prompt:'他的手抵住了門板。',
+        initial:['立刻關門','往後退','大聲呼救'],
+        forced:'讓他進來'
+      },
+      archive:{
+        prompt:'相簿自動滑到下一張。',
+        initial:['關閉相簿','刪除照片','截圖存證'],
+        forced:'下一張'
+      }
+    };
 
-        function endingAftermath(key){
-      const resentful=state.anger>=5;
-      const furious=state.anger>=10;
-      const explosive=state.anger>=15;
-      const quickHangups=state.flags.quickHangups || 0;
+    function endingGateSpacer(){
+      const spacer=document.createElement('div');
+      spacer.style.height='8px';
+      return spacer;
+    }
 
-      const base={
-        free:'\n\n你離開了他，但他沒有真正消失。你學會不再把陌生帳號、巧合與過度關心當成無害的小事。',
-        protected:'\n\n他沒有再用原本的帳號聯絡你。這並不等於他放棄，只代表他換了一個你還認不出的名字。',
-        frontEscape:'\n\n證據讓你不必再單獨證明那些「巧合」不是巧合。即使新的登入嘗試仍然出現，至少這一次，每一筆紀錄都有人和你一起保存。',
-        baited:'\n\n他沒有承認自己被你甩掉。他開始告訴別人，是你利用了他的感情。幾週後，他又對另一個人說：「我只是比別人更在乎妳。」',
-        offline:'\n\n你成功讓自己消失了九分鐘。之後每一次新帳號、陌生觀看紀錄與空白語音，都提醒你：消失不是終點，而是重新建立界線的開始。',
-        watched:'\n\n後來，他很少再提起你。不是因為放下，而是因為有了新的照片、新的行程與新的名字需要記住。',
-        officeCaught:'\n\n那盞沒有關掉的燈成了他反覆提起的證據，彷彿看穿你的謊言，就能合理化他堵住出口與奪走手機。',
-        usualRoute:'\n\n他早已把你的日常記成一張地圖。關閉訊號只能讓地圖暫時停止更新，卻無法抹掉你每天重複走過的路。',
-        trapped:'\n\n你的帳號仍會上線，回覆也越來越像他的語氣。小晴偶爾收到一句「我很好」，但再也沒有收到只有你們知道的暗號。',
-        wrongDoor:'\n\n他很快公開了新的關係。每張照片都像在證明你才是問題；只有你知道，那些溫柔的開場白曾經一字不差地對你說過。',
-        quietRoom:'\n\n從那晚之後，你的帳號沒有再主動聯絡任何人，卻每天固定查看小晴的限時動態。',
-        vanish:'\n\n你避開了那一晚，卻開始在每個陌生帳號裡尋找他的影子。最可怕的不是他有沒有看，而是你再也無法確定。',
-        gaslit:'\n\n他把注意力分給新的目標後，反而更像一個體貼的人。只有你知道，那些關心會如何慢慢變成規定。',
-        archive:'\n\n相簿沒有停止增加。你只是從最新的資料夾，變成上一個被整理好的名字。',
-        silentSOS:'\n\n求救成功不代表他立刻消失。門外錄音、未接來電與小帳觀看紀錄，成了你第一次能完整留下的證據。',
-        detectedSOS:'\n\n他最擅長的不是阻止你求救，而是讓你在下一次需要求救時，先懷疑自己會不會又做錯。',
-        revealedSOS:'\n\n求救訊號確實被送出，卻因為你提前說破而變成一場和時間的賽跑。留下的錄音證明了發生過什麼，卻無法替你拿回門被推開前的那幾秒。',
-        doorBreach:'\n\n他後來對所有人說，那晚只是擔心你情緒不穩。門鎖、未接來電與被中斷的求救電話，則被他稱作一場誤會。',
-        doorTaunt:'\n\n他把你隔門的怒罵剪成一段沒有前因後果的錄音，對外說自己只是擔心你。門外的追蹤、鑰匙與威脅，全被藏在錄音開始以前。',
-        openedDoor:'\n\n你只是想清楚地說一次「離開」，他卻把那扇打開的門解釋成允許。之後，他對所有人說是你主動讓他進去。'
-      };
+    function runEndingGate(key){
+      const config=endingGateConfigs[key];
+      if(!config) return Promise.resolve();
 
-      const resentfulText=resentful
-        ? '\n\n他記得你罵過他的每一個字。即使換了帳號，那些字仍會被他一遍遍提起，像是所有越界行為都能因此被合理化。'
-        : '';
+      return new Promise(resolve=>{
+        const choiceTitle=choiceArea.querySelector('.choice-title');
+        const previousTitle=choiceTitle.textContent;
+        let finished=false;
 
-      const rageText=furious
-        ? '\n\n你曾經罵他的那些訊息被截圖、裁切、重新排列。他在小帳裡說自己被背叛、被羞辱，卻從不提定位器、偷拍照與那些無止盡的來電。'
-        : '';
+        const cleanup=()=>{
+          if(finished) return;
+          finished=true;
+          choiceArea.classList.add('hidden');
+          choiceArea.classList.remove('ending-gate-mode');
+          choicesBox.innerHTML='';
+          choiceTitle.textContent=previousTitle;
+          resolve();
+        };
 
-      const explosiveText=explosive
-        ? '\n\n他不再滿足於隔著螢幕監視。有人在你住處附近看見他，有時只是站著，有時拿著一袋你以前喜歡的東西，像是在等一扇終究會打開的門。'
-        : '';
+        const makeButton=(label,{forced=false,onClick}={})=>{
+          const button=document.createElement('button');
+          button.type='button';
+          button.className='choice-btn ending-gate-btn'+(forced?' forced':'');
+          button.textContent=label;
+          button.addEventListener('click',onClick,{once:true});
+          return button;
+        };
 
-      const hangupText=quickHangups>=2
-        ? '\n\n你立刻掛掉的那幾通電話，成了他最常提起的理由：「是她先不肯聽我說。」'
-        : '';
+        const showFinalChoice=()=>{
+          choiceTitle.textContent='沒有其他選項。';
+          choicesBox.innerHTML='';
 
-      return (base[key] || '') + resentfulText + rageText + explosiveText + hangupText;
+          const finalButton=makeButton(config.forced,{
+            forced:true,
+            onClick:()=>{
+              finalButton.disabled=true;
+              finalButton.classList.add('shake');
+              navigator.vibrate?.([35,45,70]);
+              setTimeout(cleanup,420);
+            }
+          });
+
+          finalButton.classList.add('only-choice');
+          choicesBox.appendChild(finalButton);
+          scrollBottom();
+        };
+
+        const collapseForcedChoices=()=>{
+          choiceTitle.textContent='選項正在消失。';
+          const buttons=[...choicesBox.querySelectorAll('.ending-gate-btn')];
+          buttons.forEach(button=>{button.disabled=true;});
+
+          if(buttons[0]) buttons[0].classList.add('shake');
+          navigator.vibrate?.(45);
+
+          setTimeout(()=>{
+            if(buttons[1]) buttons[1].classList.add('vanish');
+          },220);
+
+          setTimeout(()=>{
+            if(buttons[2]) buttons[2].classList.add('vanish');
+          },470);
+
+          setTimeout(showFinalChoice,820);
+        };
+
+        const showForcedChoices=()=>{
+          choiceTitle.textContent='訊息沒有送出。';
+          choicesBox.innerHTML='';
+
+          for(let index=0;index<3;index++){
+            const button=makeButton(config.forced,{
+              forced:true,
+              onClick:collapseForcedChoices
+            });
+            choicesBox.appendChild(button);
+            if(index<2) choicesBox.appendChild(endingGateSpacer());
+          }
+
+          scrollBottom();
+        };
+
+        const rejectInitialChoice=event=>{
+          const buttons=[...choicesBox.querySelectorAll('.ending-gate-btn')];
+          buttons.forEach(button=>{
+            button.disabled=true;
+            button.classList.add('shake');
+          });
+
+          event.currentTarget.classList.add('forced');
+          navigator.vibrate?.([25,35,25]);
+          setTimeout(showForcedChoices,520);
+        };
+
+        choiceTitle.textContent=config.prompt;
+        choicesBox.innerHTML='';
+
+        config.initial.forEach((label,index)=>{
+          choicesBox.appendChild(
+            makeButton(label,{onClick:rejectInitialChoice})
+          );
+
+          if(index<config.initial.length-1){
+            choicesBox.appendChild(endingGateSpacer());
+          }
+        });
+
+        choiceArea.classList.add('ending-gate-mode');
+        choiceArea.classList.remove('hidden');
+        scrollBottom();
+      });
+    }
+
+    function endingAftermath(key){
+      const details=[];
+
+      if(key==='baited'){
+        if(state.flags.decoySteps){
+          details.push('音響播放紀錄證明，腳步聲是你預先設定的誘餌。');
+        }else if(state.flags.decoyElevator){
+          details.push('電梯鏡頭拍下定位器獨自抵達八樓，也拍下他追著空電梯闖入。');
+        }else if(state.flags.decoyLights){
+          details.push('會議室燈光的遠端操作紀錄，和他進入八樓的門禁時間完全吻合。');
+        }
+      }
+
+      if(key==='free' && state.flags.checkedCharm){
+        details.push('你拆下的定位器成為整段追蹤行為裡最難被否認的一件證物。');
+      }
+
+      if(key==='frontEscape' && state.evidence>=8){
+        details.push('陌生裝置登入、共享相簿與門禁影像被整理成同一條時間線。');
+      }
+
+      if(key==='doorTaunt' && (state.flags.quickHangups || 0)>=2){
+        details.push('他對外只保留你怒罵與掛電話的片段，卻沒有保留自己帶著鑰匙站在門外的前因。');
+      }
+
+      return details.length ? `\n\n${details.join('\n\n')}` : '';
     }
 
     async function endGame(key){
@@ -4379,6 +4694,7 @@
       choicesBox.innerHTML='';
 
       await playEndingSequence(key);
+      await runEndingGate(key);
 
       const data=endings[key];
       if(!data){
@@ -4429,12 +4745,15 @@
       switchChat('yenting',{animate:false});
       choicesBox.innerHTML='';
       choiceArea.classList.add('hidden');
+      choiceArea.classList.remove('ending-gate-mode');
       endingOverlay.classList.add('hidden');
       startOverlay.classList.remove('hidden');
       nameInput.value='';
       profileSub.textContent='上線中';
       setTimeout(()=>nameInput.focus(),100);
     }
+
+    const SILENT_AUDIO_UNLOCK="data:audio/wav;base64,UklGRmQGAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YUAGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
 
     function startGame(){
       clearChoiceIdleTimers();
@@ -4452,20 +4771,16 @@
         audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
         if(audioCtx.state==='suspended') audioCtx.resume();
 
-        // Unlock HTML audio inside the user's tap on iOS/WebView.
-        const unlockKey='寶貝，接電話。';
-        const unlockSource=bundledYentingAudio[unlockKey];
-        if(unlockSource){
-          const unlockAudio=new Audio(bundledAudioObjectUrl(unlockKey,unlockSource));
-          unlockAudio.volume=0;
-          unlockAudio.setAttribute('playsinline','');
-          const unlockResult=unlockAudio.play();
-          unlockResult?.then(()=>{
-            unlockAudio.pause();
-            unlockAudio.currentTime=0;
-            unlockAudio.volume=1;
-          }).catch(()=>{});
-        }
+        // Unlock HTML audio with a truly silent clip; no dialogue is played here.
+        const unlockAudio=new Audio(SILENT_AUDIO_UNLOCK);
+        unlockAudio.volume=0;
+        unlockAudio.muted=true;
+        unlockAudio.setAttribute('playsinline','');
+        const unlockResult=unlockAudio.play();
+        unlockResult?.then(()=>{
+          unlockAudio.pause();
+          unlockAudio.currentTime=0;
+        }).catch(()=>{});
       }catch(error){}
       setGameTime(18,42);
       startOverlay.classList.add('hidden');
